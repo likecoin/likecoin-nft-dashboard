@@ -1,9 +1,17 @@
 <template>
   <div>
     <h1>NFT Ranking</h1>
-    <input type="date" v-model="after">
-    <input type="date" v-model="before">
-    <p>From {{ after }} to {{ before }}</p>
+    <div>
+      <label>Begin: <input type="date" v-model="after"></label>
+      <label>End: <input type="date" v-model="before"></label>
+      <br>
+      <label>Stakeholder Name: <input type="text" v-model="stakeholder"></label>
+      <label>Type: <input type="text" v-model="type"></label>
+      <br>
+      <label>Creator: <input type="text" v-model="creator"></label>
+      <label>Collector: <input type="text" v-model="collector"></label>
+      <button v-on:click="load()">Search</button>
+    </div>
     <table v-if="classes">
       <tr>
         <th>Name</th>
@@ -30,14 +38,16 @@ import axios from "axios";
 export default {
   name: 'App',
   watch: {
-    'after': 'load',
-    'before': 'load',
   },
   data () {
     return {
       classes: [],
       after: '',
       before: '',
+      stakeholder: '',
+      creator: '',
+      collector: '',
+      type: '',
     };
   },
   async mounted() {
@@ -47,8 +57,21 @@ export default {
     async load() {
       const after = new Date(this.after).getTime() / 1000 || 0;
       const before = new Date(this.before).getTime() / 1000 || 0;
-      const res = await axios.get(`/likechain/likenft/v1/ranking?ignore_list=like1yney2cqn5qdrlc50yr5l53898ufdhxafqz9gxp&after=${after}&before=${before}&limit=20`);
+      const res = await axios.get(
+        '/likechain/likenft/v1/ranking', {
+          params: {
+            ignore_list: 'like1yney2cqn5qdrlc50yr5l53898ufdhxafqz9gxp',
+            after,
+            before,
+            stakeholder_name: this.stakeholder,
+            creator: this.creator,
+            collector: this.collector,
+            type: this.type,
+            limit: 20,
+        },
+      })
       this.classes = res.data.classes;
+      if (!this.classes) return
       const promises = this.classes.map((c) => 
         axios.get(`https://api.rinkeby.like.co/likernft/purchase?iscn_id=${c.parent.iscn_id_prefix}&class_id=${c.id}`)
         .then((res) => {
