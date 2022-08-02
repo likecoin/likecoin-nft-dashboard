@@ -80,7 +80,6 @@ export default {
       const promises = this.classes.map((c) => 
         axios.get(API_PUBLIC+'/likernft/purchase', {
           params: {
-            iscn_id: c.parent.iscn_id_prefix,
             class_id: c.id,
           }
         })
@@ -96,10 +95,14 @@ export default {
         })
         .catch((err) => {
           console.error(err.message);
-          return c;
+          return {
+            ...c, 
+            sold_count: 0, 
+            price: 0,
+          };
         })
       );
-      this.classes = (await Promise.all(promises)).sort((a, b) => b.price - a.price);
+      this.classes = (await Promise.all(promises)).sort((a, b) => b.sold_count - a.sold_count);
       console.log(this.classes);
     },
   }
