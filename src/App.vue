@@ -16,6 +16,7 @@
       <tr>
         <th>Name</th>
         <th>Creator</th>
+        <th>NFT ID</th>
         <th>Description</th>
         <th>Sold Count</th>
         <th>Last Sold Price</th>
@@ -23,6 +24,7 @@
       <tr v-for="c in classes.slice(0, 10)" :key="c.id">
         <td>{{ c.name }}</td>
         <td>{{ c.creator }}</td>
+        <td>{{ c.parent.iscn_id_prefix }}<br>{{ c.id }}</td>
         <td>{{ c.description }}</td>
         <td>{{ c.sold_count }}</td>
         <td>{{ c.price }}</td>
@@ -34,6 +36,9 @@
 
 <script>
 import axios from "axios";
+import {
+  INDEXER, API_PUBLIC, IGNORE_LIST,
+} from './config';
 
 export default {
   name: 'App',
@@ -58,22 +63,27 @@ export default {
       const after = new Date(this.after).getTime() / 1000 || 0;
       const before = new Date(this.before).getTime() / 1000 || 0;
       const res = await axios.get(
-        '/likechain/likenft/v1/ranking', {
+        INDEXER+'/likechain/likenft/v1/ranking', {
           params: {
-            ignore_list: 'like1yney2cqn5qdrlc50yr5l53898ufdhxafqz9gxp',
+            ignore_list: IGNORE_LIST,
             after,
             before,
             stakeholder_name: this.stakeholder,
             creator: this.creator,
             collector: this.collector,
             type: this.type,
-            limit: 20,
+            limit: 15,
         },
       })
       this.classes = res.data.classes;
       if (!this.classes) return
       const promises = this.classes.map((c) => 
-        axios.get(`https://api.rinkeby.like.co/likernft/purchase?iscn_id=${c.parent.iscn_id_prefix}&class_id=${c.id}`)
+        axios.get(API_PUBLIC+'/likernft/purchase', {
+          params: {
+            iscn_id: c.parent.iscn_id_prefix,
+            class_id: c.id,
+          }
+        })
         .then((res) => {
           console.log(res.data);
           const { data: { lastSoldPrice, metadata: { creatorWallet: creator, soldCount } } } = res;
