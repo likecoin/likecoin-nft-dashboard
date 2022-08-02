@@ -1,7 +1,10 @@
 <template>
   <div>
     <h1>NFT Ranking</h1>
-    <table>
+    <input type="date" v-model="after">
+    <input type="date" v-model="before">
+    <p>From {{ after }} to {{ before }}</p>
+    <table v-if="classes">
       <tr>
         <th>Name</th>
         <th>Creator</th>
@@ -17,7 +20,7 @@
         <td>{{ c.price }}</td>
       </tr>
     </table>
-    {{ classes }}
+    <p v-else>No result</p>
   </div>
 </template>
 
@@ -26,34 +29,47 @@ import axios from "axios";
 
 export default {
   name: 'App',
+  watch: {
+    'after': 'load',
+    'before': 'load',
+  },
   data () {
     return {
       classes: [],
+      after: '',
+      before: '',
     };
   },
-  async mounted () {
-    const res = await axios.get('/likechain/likenft/v1/ranking?ignore_list=like1yney2cqn5qdrlc50yr5l53898ufdhxafqz9gxp&limit=20');
-    this.classes = res.data.classes;
-    const promises = this.classes.map((c) => 
-      axios.get(`https://api.rinkeby.like.co/likernft/purchase?iscn_id=${c.parent.iscn_id_prefix}&class_id=${c.id}`)
-      .then((res) => {
-        console.log(res.data);
-        const { data: { lastSoldPrice, metadata: { creatorWallet: creator, soldCount } } } = res;
-        return {
-          ...c, 
-          sold_count: soldCount, 
-          price: lastSoldPrice,
-          creator,
-        };
-      })
-      .catch((err) => {
-        console.error(err.message);
-        return c;
-      })
-    );
-    this.classes = (await Promise.all(promises)).sort((a, b) => b.price - a.price);
-    console.log(this.classes);
+  async mounted() {
+    await this.load();
   },
+  methods: {
+    async load() {
+      const after = new Date(this.after).getTime() / 1000 || 0;
+      const before = new Date(this.before).getTime() / 1000 || 0;
+      const res = await axios.get(`/likechain/likenft/v1/ranking?ignore_list=like1yney2cqn5qdrlc50yr5l53898ufdhxafqz9gxp&after=${after}&before=${before}&limit=20`);
+      this.classes = res.data.classes;
+      const promises = this.classes.map((c) => 
+        axios.get(`https://api.rinkeby.like.co/likernft/purchase?iscn_id=${c.parent.iscn_id_prefix}&class_id=${c.id}`)
+        .then((res) => {
+          console.log(res.data);
+          const { data: { lastSoldPrice, metadata: { creatorWallet: creator, soldCount } } } = res;
+          return {
+            ...c, 
+            sold_count: soldCount, 
+            price: lastSoldPrice,
+            creator,
+          };
+        })
+        .catch((err) => {
+          console.error(err.message);
+          return c;
+        })
+      );
+      this.classes = (await Promise.all(promises)).sort((a, b) => b.price - a.price);
+      console.log(this.classes);
+    },
+  }
 }
 </script>
 
