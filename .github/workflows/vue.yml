@@ -11,4 +11,5 @@ jobs:
       with:
         username: 'lancatlin'
         reponame: 'likenft-ranking'
+        useyarn: true
         token: ${{ secrets.GITHUB_TOKEN }}
