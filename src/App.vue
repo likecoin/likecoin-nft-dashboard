@@ -1,5 +1,5 @@
 <template>
-  <h1>Writing NFT Toolbox</h1>
+  <h1>LikeCoin NFT Dashboard</h1>
   <div>
     <div>Select a page</div>
     <div>

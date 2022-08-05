@@ -10,6 +10,6 @@ jobs:
       uses: xRealNeon/VuePagesAction@1.0.1
       with:
         username: ${{ github.repository_owner }}
-        reponame: 'likecoin-nft-ranking'
+        reponame: 'likecoin-nft-dashboard'
         useyarn: true
         token: ${{ secrets.GITHUB_TOKEN }}
