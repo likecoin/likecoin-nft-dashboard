@@ -1,6 +1,6 @@
 import { createRouter, createWebHashHistory } from 'vue-router';
 import {
-  Ranking
+  Ranking, SocialGraph
 } from './pages';
 
 export const routes = [
@@ -8,6 +8,11 @@ export const routes = [
     name: 'Ranking',
     path: '/ranking',
     component: Ranking,
+  },
+  {
+    name: 'SocialGraph',
+    path: '/socialgraph',
+    component: SocialGraph,
   },
 ];
 

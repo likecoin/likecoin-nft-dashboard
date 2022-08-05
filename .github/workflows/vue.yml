@@ -9,7 +9,7 @@ jobs:
     - id: Build-Vue
       uses: xRealNeon/VuePagesAction@1.0.1
       with:
-        username: 'lancatlin'
-        reponame: 'likenft-ranking'
+        username: ${{ github.repository_owner }}
+        reponame: 'likecoin-nft-ranking'
         useyarn: true
         token: ${{ secrets.GITHUB_TOKEN }}
