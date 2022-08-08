@@ -19,7 +19,6 @@ import { routes } from '@/router';
 const router = useRouter();
 
 function selectPage(n) {
-  console.log(n);
   const route = routes[n];
   router.push(route.path);
 }

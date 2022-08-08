@@ -25,7 +25,7 @@
       <td>{{ c.creator }}</td>
       <td>{{ c.parent.iscn_id_prefix }}<br>{{ c.id }}</td>
       <td>{{ c.description }}</td>
-      <td>{{ c.sold_count }}</td>
+      <td>{{ c.soldCount }}</td>
       <td>{{ c.price }}</td>
     </tr>
   </table>
@@ -85,7 +85,7 @@ export default {
           const { data: { lastSoldPrice, metadata: { creatorWallet: creator, soldCount } } } = res;
           return {
             ...c, 
-            sold_count: soldCount, 
+            soldCount, 
             price: lastSoldPrice,
             creator,
           };
@@ -94,7 +94,7 @@ export default {
           console.error(err.message);
           return {
             ...c, 
-            sold_count: 0, 
+            soldCount: 0, 
             price: 0,
           };
         })

@@ -24,7 +24,7 @@
       <td>{{ c.account }}</td>
       <td>{{ c.count }}</td>
       <table>
-        <tr v-for="col in c.collections" :key="col.class_id">
+        <tr v-for="col in c.collections" :key="col.classId">
           <td><a :href="col.external_url" target="_blank">{{ col.name }}</a></td>
           <td><strong>{{ col.count }}</strong> x {{ col.price }}</td>
         </tr>
@@ -89,14 +89,14 @@ export default {
           totalValue: 0,
         };
         a.collections.forEach(
-          ({ iscn_id_prefix, class_id, count }) => {
+          ({ iscn_id_prefix: iscnIdPrefix, class_id: classId, count }) => {
             let collection = {
-              iscn_id_prefix,
-              class_id,
+              iscnIdPrefix,
+              classId,
               count,
             }
             promises.push(
-              getClass(class_id)
+              getClass(classId)
               .then((res) => {
                 const {
                   lastSoldPrice: price,
@@ -104,7 +104,7 @@ export default {
                 collection.price = price;
                 collection.totalValue = count * price;
                 account.totalValue += count * price;
-                return getMetadata(class_id)
+                return getMetadata(classId)
               })
               .then((res) => {
                 collection = {
@@ -113,7 +113,7 @@ export default {
                 }
               })
               .catch((err) => {
-                console.error(err.message, iscn_id_prefix, class_id);
+                console.error(err.message, iscnIdPrefix, classId);
                 collection.price = 0;
                 collection.totalValue = 0;
               })
