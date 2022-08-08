@@ -2,13 +2,13 @@
   <h2>Social Graph</h2>
   <div>
     <label>
-    Get
-    <select v-model="type">
-      <option value="creator">Creator</option>
-      <option value="collector">Collector</option>
-    </select>
-    Of
-    <input v-model="account" type="text" size="40">
+        Get
+        <select v-model="type">
+          <option value="creator">Creator</option>
+          <option value="collector">Collector</option>
+        </select>
+        Of
+        <input v-model="account" type="text" size="40">
     </label>
     <button v-on:click="load()">Load</button>
   </div>
@@ -56,7 +56,7 @@ export default {
   methods: {
     async load() {
       if (this.type === 'collector') {
-        const res = await axios.get(INDEXER+'/likechain/likenft/v1/collector', {
+        const res = await axios.get(`${INDEXER}/likechain/likenft/v1/collector`, {
           params: {
             creator: this.account,
             reverse: true,
@@ -67,7 +67,7 @@ export default {
         this.response = await this.aggregate(this.response);
       }
       if (this.type === 'creator') {
-        const res = await axios.get(INDEXER+'/likechain/likenft/v1/creator', {
+        const res = await axios.get(`${INDEXER}/likechain/likenft/v1/creator`, {
           params: {
             collector: this.account,
             reverse: true,

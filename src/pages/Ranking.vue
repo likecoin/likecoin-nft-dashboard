@@ -9,7 +9,7 @@
     <br>
     <label>Creator: <input type="text" v-model="creator"></label>
     <label>Collector: <input type="text" v-model="collector"></label>
-    <button v-on:click="load()">Search</button>
+    <button @click="load">Search</button>
   </div>
   <table v-if="classes">
     <tr>
@@ -61,7 +61,7 @@ export default {
       const after = new Date(this.after).getTime() / 1000 || 0;
       const before = new Date(this.before).getTime() / 1000 || 0;
       const res = await axios.get(
-        INDEXER+'/likechain/likenft/v1/ranking', {
+        `${INDEXER}/likechain/likenft/v1/ranking`, {
           params: {
             ignore_list: IGNORE_LIST,
             after,
@@ -76,13 +76,12 @@ export default {
       this.classes = res.data.classes;
       if (!this.classes) return
       const promises = this.classes.map((c) => 
-        axios.get(API_PUBLIC+'/likernft/purchase', {
+        axios.get(`${API_PUBLIC}/likernft/purchase`, {
           params: {
             class_id: c.id,
           }
         })
         .then((res) => {
-          console.log(res.data);
           const { data: { lastSoldPrice, metadata: { creatorWallet: creator, soldCount } } } = res;
           return {
             ...c, 
@@ -101,7 +100,6 @@ export default {
         })
       );
       this.classes = (await Promise.all(promises)).sort((a, b) => b.sold_count - a.sold_count);
-      console.log(this.classes);
     },
   }
 }
