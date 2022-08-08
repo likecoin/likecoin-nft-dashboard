@@ -10,7 +10,7 @@
         Of
         <input v-model="account" type="text" size="40">
     </label>
-    <button v-on:click="load()">Load</button>
+    <button @click="load">Load</button>
   </div>
   <h3 v-if="responseType">{{ responseType }} of {{ account }}</h3>
   <table v-if="response">
