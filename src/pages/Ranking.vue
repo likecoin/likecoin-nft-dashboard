@@ -40,9 +40,7 @@ import {
 import { getClass } from '../utils/proxy.js';
 
 export default {
-  name: 'App',
-  watch: {
-  },
+  name: 'NftRanking',
   data () {
     return {
       classes: [],
@@ -88,7 +86,7 @@ export default {
           };
         })
         .catch((err) => {
-          console.error(err.message);
+          console.error(err);
           return {
             ...c, 
             soldCount: 0, 
