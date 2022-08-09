@@ -81,7 +81,7 @@ export default {
             totalValue: 0,
           };
         return Promise.all(a.collections.map(({ iscn_id_prefix: iscnIdPrefix, class_id: classId, count }) => {
-          let collection = {
+          const collection = {
             iscnIdPrefix,
             classId,
             count,
@@ -91,21 +91,21 @@ export default {
               const {
                 lastSoldPrice: price,
               } = purchaseRes.data;
-              collection.price = price;
-              collection.totalValue = count * price;
               account.totalValue += count * price;
-              collection = {
+              return {
+                price,
+                totalValue: count * price,
                 ...collection,
                 ...metadataRes.data,
               }
             })
             .catch((err) => {
               console.error(err, iscnIdPrefix, classId);
-              collection.price = 0;
-              collection.totalValue = 0;
-            })
-            .finally(() => {
-              account.collections.push(collection)
+              return {
+                ...collection,
+                price: 0,
+                totalValue: 0,
+              };
             })
         }))
         .then((collections) => {
