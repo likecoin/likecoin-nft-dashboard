@@ -3,7 +3,7 @@
   <div>
     <div>Select a page</div>
     <div>
-      <span v-for="(route, i) of routes" :key="i">
+      <span v-for="(route, i) of routes" :key="route.name">
         <button @click="selectPage(i)">{{ route.name }}</button>
       </span>
     </div>

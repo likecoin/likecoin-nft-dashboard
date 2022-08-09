@@ -35,8 +35,9 @@
 <script >
 import axios from "axios";
 import {
-  INDEXER, API_PUBLIC, IGNORE_LIST,
+  INDEXER, IGNORE_LIST,
 } from '../config';
+import { getClass } from '../utils/proxy.js';
 
 export default {
   name: 'App',
@@ -76,11 +77,7 @@ export default {
       this.classes = res.data.classes;
       if (!this.classes) return
       const promises = this.classes.map((c) => 
-        axios.get(`${API_PUBLIC}/likernft/purchase`, {
-          params: {
-            class_id: c.id,
-          }
-        })
+        getClass(c.id)
         .then((res) => {
           const { data: { lastSoldPrice, metadata: { creatorWallet: creator, soldCount } } } = res;
           return {
@@ -99,7 +96,7 @@ export default {
           };
         })
       );
-      this.classes = (await Promise.all(promises)).sort((a, b) => b.sold_count - a.sold_count);
+      this.classes = (await Promise.all(promises)).sort((a, b) => b.soldCount - a.soldCount);
     },
   }
 }
