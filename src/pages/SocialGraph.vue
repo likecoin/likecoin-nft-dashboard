@@ -73,51 +73,47 @@ export default {
     },
 
     async aggregate(accounts) {
-      const promises = [];
-      const newAccounts = [];
-      accounts.filter(a => !this.ignoreList.includes(a.account)).forEach((a) => {
+      const promises = accounts.filter(a => !this.ignoreList.includes(a.account)).map((a) => {
         const account = {
-          account: a.account,
-          collections: [],
-          count: a.count,
-          totalValue: 0,
-        };
-        a.collections.forEach(
-          ({ iscn_id_prefix: iscnIdPrefix, class_id: classId, count }) => {
-            let collection = {
-              iscnIdPrefix,
-              classId,
-              count,
-            }
-            promises.push(
-              Promise.all([getClass(classId), getMetadata(classId)])
-              .then(([purchaseRes, metadataRes]) => {
-                const {
-                  lastSoldPrice: price,
-                } = purchaseRes.data;
-                collection.price = price;
-                collection.totalValue = count * price;
-                account.totalValue += count * price;
-                collection = {
-                  ...collection,
-                  ...metadataRes.data,
-                }
-              })
-              .catch((err) => {
-                console.error(err, iscnIdPrefix, classId);
-                collection.price = 0;
-                collection.totalValue = 0;
-              })
-              .finally(() => {
-                account.collections.push(collection)
-              })
-            );
-          },
-        );
-        newAccounts.push(account);
+            account: a.account,
+            collections: [],
+            count: a.count,
+            totalValue: 0,
+          };
+        return Promise.all(a.collections.map(({ iscn_id_prefix: iscnIdPrefix, class_id: classId, count }) => {
+          let collection = {
+            iscnIdPrefix,
+            classId,
+            count,
+          }
+          return Promise.all([getClass(classId), getMetadata(classId)])
+            .then(([purchaseRes, metadataRes]) => {
+              const {
+                lastSoldPrice: price,
+              } = purchaseRes.data;
+              collection.price = price;
+              collection.totalValue = count * price;
+              account.totalValue += count * price;
+              collection = {
+                ...collection,
+                ...metadataRes.data,
+              }
+            })
+            .catch((err) => {
+              console.error(err, iscnIdPrefix, classId);
+              collection.price = 0;
+              collection.totalValue = 0;
+            })
+            .finally(() => {
+              account.collections.push(collection)
+            })
+        }))
+        .then((collections) => {
+          account.collections = collections;
+          return account;
+        })
       });
-      await Promise.all(promises);
-      return newAccounts.sort((a, b) => b.totalValue - a.totalValue);
+      return (await Promise.all(promises)).sort((a, b) => b.totalValue - a.totalValue);
     },
   },
 }
