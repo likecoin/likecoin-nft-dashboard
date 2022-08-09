@@ -12,7 +12,7 @@
     </label>
     <button @click="load">Load</button>
   </div>
-  <h3 v-if="responseType">{{ responseType }} of {{ account }}</h3>
+  <h3 v-if="responseType">The {{ responseType }} of {{ account }}</h3>
   <table v-if="response">
     <tr>
       <th>Account</th>
@@ -42,6 +42,11 @@ import {
 } from '../config';
 import { getClass, getMetadata } from '../utils/proxy';
 
+const typeMap = new Map([
+  ["collector", { param: "creator", responseType: "collectors" }],
+  ["creator", { param: "collector", responseType: "creators" }],
+]);
+
 export default {
   name: 'NftSocialGraph',
   data() {
@@ -55,29 +60,18 @@ export default {
   },
   methods: {
     async load() {
-      if (this.type === 'collector') {
-        const res = await axios.get(`${INDEXER}/likechain/likenft/v1/collector`, {
-          params: {
-            creator: this.account,
-            reverse: true,
-          },
-        });
-        this.response = res.data.collectors;
-        this.responseType = 'Collectors';
-        this.response = await this.aggregate(this.response);
-      }
-      if (this.type === 'creator') {
-        const res = await axios.get(`${INDEXER}/likechain/likenft/v1/creator`, {
-          params: {
-            collector: this.account,
-            reverse: true,
-          },
-        });
-        this.response = res.data.creators;
-        this.responseType = 'Creators';
-        this.response = await this.aggregate(this.response);
-      }
+      if (!typeMap.has(this.type)) return;
+      const type = typeMap.get(this.type);
+      const params = {
+         reverse: true,
+      };
+      params[type.param] = this.account;
+      const res = await axios.get(`${INDEXER}/likechain/likenft/v1/${this.type}`, { params });
+      this.response = res.data[type.responseType];
+      this.responseType = type.responseType;
+      this.response = await this.aggregate(this.response);
     },
+
     async aggregate(accounts) {
       const promises = [];
       const newAccounts = [];
@@ -113,7 +107,7 @@ export default {
                 }
               })
               .catch((err) => {
-                console.error(err.message, iscnIdPrefix, classId);
+                console.error(err, iscnIdPrefix, classId);
                 collection.price = 0;
                 collection.totalValue = 0;
               })
