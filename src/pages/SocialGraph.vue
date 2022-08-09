@@ -90,20 +90,17 @@ export default {
               count,
             }
             promises.push(
-              getClass(classId)
-              .then((res) => {
+              Promise.all([getClass(classId), getMetadata(classId)])
+              .then(([purchaseRes, metadataRes]) => {
                 const {
                   lastSoldPrice: price,
-                } = res.data;
+                } = purchaseRes.data;
                 collection.price = price;
                 collection.totalValue = count * price;
                 account.totalValue += count * price;
-                return getMetadata(classId)
-              })
-              .then((res) => {
                 collection = {
                   ...collection,
-                  ...res.data,
+                  ...metadataRes.data,
                 }
               })
               .catch((err) => {
