@@ -47,6 +47,31 @@ const typeMap = new Map([
   ["creator", { param: "collector", responseType: "creators" }],
 ]);
 
+async function getCollection({ iscn_id_prefix: iscnIdPrefix, class_id: classId, count }) {
+  const collection = {
+    iscnIdPrefix,
+    classId,
+    count,
+  };
+  try {
+    const [purchaseRes, metadataRes] = await Promise.all([getClass(classId), getMetadata(classId)]);
+    const { lastSoldPrice: price } = purchaseRes.data;
+    return {
+      price,
+        totalValue: count * price,
+        ...collection,
+        ...metadataRes.data,
+    };
+  } catch (err) {
+    console.error(err, iscnIdPrefix, classId);
+    return {
+      ...collection,
+        price: 0,
+        totalValue: 0,
+    };
+  }
+}
+
 export default {
   name: 'NftSocialGraph',
   data() {
@@ -59,6 +84,25 @@ export default {
     }
   },
   methods: {
+    async aggregate(accounts) {
+      const promises = accounts
+        .filter(a => !this.ignoreList.includes(a.account))
+        .map(async (a) => {
+          const account = {
+            account: a.account,
+            collections: [],
+            count: a.count,
+            totalValue: 0,
+          };
+          account.collections = await Promise.all(a.collections.map(getCollection));
+          account.totalValue = account.collections.reduce((total, { totalValue }) => total + totalValue, 0);
+          return account;
+        });
+      return (await Promise.all(promises)).sort(
+        (a, b) => b.totalValue - a.totalValue,
+      );
+    },
+
     async load() {
       if (!typeMap.has(this.type)) return;
       const type = typeMap.get(this.type);
@@ -70,50 +114,6 @@ export default {
       this.response = res.data[type.responseType];
       this.responseType = type.responseType;
       this.response = await this.aggregate(this.response);
-    },
-
-    async aggregate(accounts) {
-      const promises = accounts.filter(a => !this.ignoreList.includes(a.account)).map((a) => {
-        const account = {
-            account: a.account,
-            collections: [],
-            count: a.count,
-            totalValue: 0,
-          };
-        return Promise.all(a.collections.map(({ iscn_id_prefix: iscnIdPrefix, class_id: classId, count }) => {
-          const collection = {
-            iscnIdPrefix,
-            classId,
-            count,
-          }
-          return Promise.all([getClass(classId), getMetadata(classId)])
-            .then(([purchaseRes, metadataRes]) => {
-              const {
-                lastSoldPrice: price,
-              } = purchaseRes.data;
-              account.totalValue += count * price;
-              return {
-                price,
-                totalValue: count * price,
-                ...collection,
-                ...metadataRes.data,
-              }
-            })
-            .catch((err) => {
-              console.error(err, iscnIdPrefix, classId);
-              return {
-                ...collection,
-                price: 0,
-                totalValue: 0,
-              };
-            })
-        }))
-        .then((collections) => {
-          account.collections = collections;
-          return account;
-        })
-      });
-      return (await Promise.all(promises)).sort((a, b) => b.totalValue - a.totalValue);
     },
   },
 }
