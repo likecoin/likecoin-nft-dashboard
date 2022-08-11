@@ -14,6 +14,10 @@
       <td>{{ tradeValue }} LIKE</td>
     </tr>
     <tr>
+      <td>Creator Count</td>
+      <td>{{ creatorCount }}</td>
+    </tr>
+    <tr>
       <td>Owner Count</td>
       <td>{{ ownerCount }}</td>
     </tr>
@@ -52,6 +56,7 @@ export default {
       ownerCount: 0,
       tradeCount: 0,
       tradeValue: 0,
+      creatorCount: 0,
       owners: [],
     }
   },
@@ -66,6 +71,9 @@ export default {
     }).then(res => {
       this.tradeCount = res.data.count
       this.tradeValue = Math.floor(res.data.total_volume / (10**9))
+    })
+    api.get('/analysis/creator-count').then(res => {
+      this.creatorCount = res.data.count
     })
     api.get('/analysis/owner-count').then(res => {
       this.ownerCount = res.data.count
