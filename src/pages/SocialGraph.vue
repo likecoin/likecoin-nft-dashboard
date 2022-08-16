@@ -59,7 +59,7 @@
 <script>
 import axios from 'axios';
 import {
-  INDEXER_URL, IGNORE_ADDRESS_LIST,
+  INDEXER_URL, IGNORE_ADDRESS_LIST, EXAMPLE_CREATOR_ADDRESS,
 } from '../config';
 import { getClass, getMetadata } from '../utils/proxy';
 
@@ -110,7 +110,7 @@ export default {
   data() {
     return {
       type: 'collector',
-      account: 'like13f4glvg80zvfrrs7utft5p68pct4mcq7t5atf6',
+      account: EXAMPLE_CREATOR_ADDRESS,
       responseType: '',
       response: [],
       ignoreList: IGNORE_ADDRESS_LIST,
