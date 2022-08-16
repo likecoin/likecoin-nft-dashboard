@@ -58,11 +58,10 @@
 </template>
 
 <script>
-import axios from 'axios';
 import {
-  INDEXER_URL, IGNORE_ADDRESS_LIST,
+  IGNORE_ADDRESS_LIST,
 } from '../config';
-import { getClass } from '../utils/proxy.js';
+import { getClass, indexerApi } from '../utils/proxy.js';
 
 export default {
   name: 'NftRanking',
@@ -84,7 +83,7 @@ export default {
     async load() {
       const after = new Date(this.after).getTime() / 1000 || 0;
       const before = new Date(this.before).getTime() / 1000 || 0;
-      const res = await axios.get(`${INDEXER_URL}/likechain/likenft/v1/ranking`, {
+      const res = await indexerApi.get('/likechain/likenft/v1/ranking', {
         params: {
           ignore_list: IGNORE_ADDRESS_LIST,
           after,

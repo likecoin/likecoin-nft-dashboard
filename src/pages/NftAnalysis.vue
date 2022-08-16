@@ -39,16 +39,11 @@
 </template>
 
 <script>
-import axios from 'axios';
 import {
-  INDEXER_URL,
   IGNORE_ADDRESS_LIST,
   API_ADDRESS,
 } from '../config.js';
-
-const api = axios.create({
-  baseURL: INDEXER_URL,
-});
+import { indexerApi } from '../utils/proxy.js';
 
 const limit = 20;
 
@@ -65,24 +60,24 @@ export default {
     };
   },
   mounted() {
-    api.get('/analysis/nft-count', {
+    indexerApi.get('/analysis/nft-count', {
       params: { ignore_list: IGNORE_ADDRESS_LIST },
     }).then((res) => {
       this.nftCount = res.data.count;
     });
-    api.get('/analysis/trade', {
+    indexerApi.get('/analysis/trade', {
       params: { api_address: API_ADDRESS },
     }).then((res) => {
       this.tradeCount = res.data.count;
       this.tradeValue = Math.floor(res.data.total_volume / (10 ** 9));
     });
-    api.get('/analysis/creator-count').then((res) => {
+    indexerApi.get('/analysis/creator-count').then((res) => {
       this.creatorCount = res.data.count;
     });
-    api.get('/analysis/owner-count').then((res) => {
+    indexerApi.get('/analysis/owner-count').then((res) => {
       this.ownerCount = res.data.count;
     });
-    api.get('/analysis/owners', { params: { limit } }).then((res) => {
+    indexerApi.get('/analysis/owners', { params: { limit } }).then((res) => {
       this.owners = res.data.owners;
     });
   },

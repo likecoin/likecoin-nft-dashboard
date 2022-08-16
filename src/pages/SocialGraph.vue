@@ -57,11 +57,10 @@
 </template>
 
 <script>
-import axios from 'axios';
 import {
-  INDEXER_URL, IGNORE_ADDRESS_LIST, EXAMPLE_CREATOR_ADDRESS,
+  IGNORE_ADDRESS_LIST, EXAMPLE_CREATOR_ADDRESS,
 } from '../config';
-import { getClass, getMetadata } from '../utils/proxy';
+import { getClass, getMetadata, indexerApi } from '../utils/proxy';
 
 const typeMap = new Map([
   [
@@ -146,7 +145,7 @@ export default {
         reverse: true,
       };
       params[type.param] = this.account;
-      const res = await axios.get(`${INDEXER_URL}/likechain/likenft/v1/${this.type}`, { params });
+      const res = await indexerApi.get(`/likechain/likenft/v1/${this.type}`, { params });
       this.response = res.data[type.responseType];
       this.responseType = type.responseType;
       this.response = await this.aggregate(this.response);

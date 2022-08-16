@@ -1,7 +1,13 @@
 import axios from 'axios';
-import { API_PUBLIC_URL } from '../config';
+import qs from 'qs';
+import { API_PUBLIC_URL, INDEXER_URL } from '../config';
 
 const classPayloads = new Map();
+
+export const indexerApi = axios.create({
+  baseURL: INDEXER_URL,
+  paramsSerializer: (params) => qs.stringify(params, { arrayFormat: 'repeat' }),
+});
 
 export function getClass(classId) {
   if (classPayloads.has(classId)) {
