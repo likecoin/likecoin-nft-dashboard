@@ -3,19 +3,23 @@
   <div>
     <div>Select a page</div>
     <div>
-      <span v-for="(route, i) of routes" :key="route.name">
+      <span
+        v-for="(route, i) of routes"
+        :key="route.name"
+      >
         <button @click="selectPage(i)">{{ route.name }}</button>
       </span>
     </div>
     <div class="page-container">
-      <router-view></router-view>
+      <router-view />
     </div>
   </div>
 </template>
 
 <script setup>
 import { useRouter } from 'vue-router';
-import { routes } from '@/router';
+import { routes } from './router';
+
 const router = useRouter();
 
 function selectPage(n) {

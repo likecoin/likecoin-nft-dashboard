@@ -28,7 +28,10 @@
       <th>Address</th>
       <th>Count</th>
     </tr>
-    <tr v-for="owner in owners" :key="owner.owner">
+    <tr
+      v-for="owner in owners"
+      :key="owner.owner"
+    >
       <td>{{ owner.owner }}</td>
       <td>{{ owner.count }}</td>
     </tr>
@@ -38,12 +41,13 @@
 <script>
 import axios from 'axios';
 import {
-  INDEXER,
-  IGNORE_LIST,
+  INDEXER_URL,
+  IGNORE_ADDRESS_LIST,
+  API_ADDRESS,
 } from '../config.js';
 
 const api = axios.create({
-  baseURL: INDEXER,
+  baseURL: INDEXER_URL,
 });
 
 const limit = 20;
@@ -58,29 +62,29 @@ export default {
       tradeValue: 0,
       creatorCount: 0,
       owners: [],
-    }
+    };
   },
   mounted() {
     api.get('/analysis/nft-count', {
-      params: { ignore_list: IGNORE_LIST }
-    }).then(res => {
-      this.nftCount = res.data.count
-    })
+      params: { ignore_list: IGNORE_ADDRESS_LIST },
+    }).then((res) => {
+      this.nftCount = res.data.count;
+    });
     api.get('/analysis/trade', {
-      params: { api_address: IGNORE_LIST[0] }
-    }).then(res => {
-      this.tradeCount = res.data.count
-      this.tradeValue = Math.floor(res.data.total_volume / (10**9))
-    })
-    api.get('/analysis/creator-count').then(res => {
-      this.creatorCount = res.data.count
-    })
-    api.get('/analysis/owner-count').then(res => {
-      this.ownerCount = res.data.count
-    })
-    api.get('/analysis/owners', { params: { limit } }).then(res => {
-      this.owners = res.data.owners
-    })
-  }
-}
+      params: { api_address: API_ADDRESS },
+    }).then((res) => {
+      this.tradeCount = res.data.count;
+      this.tradeValue = Math.floor(res.data.total_volume / (10 ** 9));
+    });
+    api.get('/analysis/creator-count').then((res) => {
+      this.creatorCount = res.data.count;
+    });
+    api.get('/analysis/owner-count').then((res) => {
+      this.ownerCount = res.data.count;
+    });
+    api.get('/analysis/owners', { params: { limit } }).then((res) => {
+      this.owners = res.data.owners;
+    });
+  },
+};
 </script>

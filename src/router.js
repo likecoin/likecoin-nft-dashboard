@@ -1,7 +1,7 @@
 import { createRouter, createWebHashHistory } from 'vue-router';
 import {
   NftAnalysis,
-  Ranking, 
+  Ranking,
   SocialGraph,
 } from './pages';
 
