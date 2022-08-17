@@ -8,6 +8,8 @@ jobs:
     - uses: actions/checkout@v2
     - id: Build-Vue
       uses: xRealNeon/VuePagesAction@1.0.1
+      env:
+        VUE_APP_INDEXER_URL: ${{ secrets.INDEXER_URL }}
       with:
         username: ${{ github.repository_owner }}
         reponame: 'likecoin-nft-dashboard'

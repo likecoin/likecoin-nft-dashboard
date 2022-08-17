@@ -1,9 +1,16 @@
 import { createRouter, createWebHashHistory } from 'vue-router';
 import {
-  Ranking, SocialGraph
+  NftAnalysis,
+  Ranking,
+  SocialGraph,
 } from './pages';
 
 export const routes = [
+  {
+    name: 'Analysis',
+    path: '/',
+    component: NftAnalysis,
+  },
   {
     name: 'Ranking',
     path: '/ranking',
