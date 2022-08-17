@@ -7,6 +7,11 @@ import {
 
 export const routes = [
   {
+    name: 'Analysis',
+    path: '/',
+    component: NftAnalysis,
+  },
+  {
     name: 'Ranking',
     path: '/ranking',
     component: Ranking,
@@ -15,11 +20,6 @@ export const routes = [
     name: 'SocialGraph',
     path: '/socialgraph',
     component: SocialGraph,
-  },
-  {
-    name: 'Analysis',
-    path: '/analysis',
-    component: NftAnalysis,
   },
 ];
 

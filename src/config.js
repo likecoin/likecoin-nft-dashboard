@@ -1,4 +1,5 @@
-export const { VUE_APP_INDEXER_URL: INDEXER_URL } = process.env;
+const { VUE_APP_INDEXER_URL } = process.env;
+export const INDEXER_URL = VUE_APP_INDEXER_URL || 'https://mainnet-node.like.co';
 export const API_PUBLIC_URL = 'https://api.like.co';
 export const EXAMPLE_CREATOR_ADDRESS = 'like13f4glvg80zvfrrs7utft5p68pct4mcq7t5atf6';
 
