@@ -60,24 +60,24 @@ export default {
     };
   },
   mounted() {
-    indexerApi.get('/analysis/nft-count', {
+    indexerApi.get('/statistics/nft/nft-count', {
       params: { ignore_list: IGNORE_ADDRESS_LIST },
     }).then((res) => {
       this.nftCount = res.data.count;
     });
-    indexerApi.get('/analysis/trade', {
+    indexerApi.get('/statistics/nft/trade', {
       params: { api_address: API_ADDRESS },
     }).then((res) => {
       this.tradeCount = res.data.count;
       this.tradeValue = Math.floor(res.data.total_volume / (10 ** 9));
     });
-    indexerApi.get('/analysis/creator-count').then((res) => {
+    indexerApi.get('/statistics/nft/creator-count').then((res) => {
       this.creatorCount = res.data.count;
     });
-    indexerApi.get('/analysis/owner-count').then((res) => {
+    indexerApi.get('/statistics/nft/owner-count').then((res) => {
       this.ownerCount = res.data.count;
     });
-    indexerApi.get('/analysis/owners', { params: { limit } }).then((res) => {
+    indexerApi.get('/statistics/nft/owners', { params: { limit } }).then((res) => {
       this.owners = res.data.owners;
     });
   },
