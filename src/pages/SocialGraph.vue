@@ -115,6 +115,9 @@ export default {
       ignoreList: IGNORE_ADDRESS_LIST,
     };
   },
+  mounted() {
+    this.load();
+  },
   methods: {
     async aggregate(accounts) {
       const promises = accounts
