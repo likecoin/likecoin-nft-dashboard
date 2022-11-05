@@ -32,7 +32,11 @@
       v-for="c in response.filter(({ account }) => !ignoreList.includes(account))"
       :key="c.account"
     >
-      <td>{{ c.account }}</td>
+      <td>
+        <UserLink
+          :wallet="c.account"
+        />
+      </td>
       <td>{{ c.count }}</td>
       <table>
         <tr
@@ -40,10 +44,10 @@
           :key="col.classId"
         >
           <td>
-            <a
-              :href="col.external_url"
-              target="_blank"
-            >{{ col.name }}</a>
+            <NftLink
+              :id="col.classId"
+              :name="col.name"
+            />
           </td>
           <td><strong>{{ col.count }}</strong> x {{ col.price }}</td>
         </tr>
@@ -55,6 +59,11 @@
     No response
   </p>
 </template>
+
+<script setup>
+import NftLink from '../components/NftLink.vue';
+import UserLink from '../components/UserLink.vue';
+</script>
 
 <script>
 import {
