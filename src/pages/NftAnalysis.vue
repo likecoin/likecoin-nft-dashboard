@@ -32,11 +32,19 @@
       v-for="owner in owners"
       :key="owner.owner"
     >
-      <td>{{ owner.owner }}</td>
+      <td>
+        <UserLink
+          :wallet="owner.owner"
+        />
+      </td>
       <td>{{ owner.count }}</td>
     </tr>
   </table>
 </template>
+
+<script setup>
+import UserLink from '../components/UserLink.vue';
+</script>
 
 <script>
 import {

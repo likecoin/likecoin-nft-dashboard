@@ -44,18 +44,32 @@
       v-for="c in classes.slice(0, 10)"
       :key="c.id"
     >
-      <td>{{ c.name }}</td>
-      <td>{{ c.creator }}</td>
+      <td>
+        <NftLink
+          :id="c.id"
+          :name="c.name"
+        />
+      </td>
+      <td>
+        <UserLink
+          :wallet="c.creator"
+        />
+      </td>
       <td>{{ c.parent.iscn_id_prefix }}<br>{{ c.id }}</td>
       <td>{{ c.description }}</td>
       <td>{{ c.soldCount }}</td>
-      <td>{{ c.price }}</td>
+      <td>{{ c.price }} LIKE</td>
     </tr>
   </table>
   <p v-else>
     No result
   </p>
 </template>
+
+<script setup>
+import NftLink from '../components/NftLink.vue';
+import UserLink from '../components/UserLink.vue';
+</script>
 
 <script>
 import {

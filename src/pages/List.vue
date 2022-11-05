@@ -25,28 +25,31 @@
       :key="c.id"
     >
       <td>
-        <a
-          :href="`https://liker.land/nft/class/${c.id}`"
-          target="_blank"
-          rel="noopener"
-        >{{ c.name }} </a>
+        <NftLink
+          :id="c.id"
+          :name="c.name"
+        />
       </td>
       <td>
-        <a
-          :href="`https://liker.land/${c.creator}`"
-          target="_blank"
-        >{{ c.creator }}</a>
+        <UserLink
+          :wallet="c.creator"
+        />
       </td>
       <td>{{ c.parent.iscn_id_prefix }}<br>{{ c.id }}</td>
       <td>{{ c.description }}</td>
       <td>{{ c.soldCount }}</td>
-      <td>{{ c.price }}</td>
+      <td>{{ c.price }} LIKE</td>
     </tr>
   </table>
   <p v-else>
     No result
   </p>
 </template>
+
+<script setup>
+import NftLink from '../components/NftLink.vue';
+import UserLink from '../components/UserLink.vue';
+</script>
 
 <script>
 import { getClass, indexerApi } from '../utils/proxy.js';
