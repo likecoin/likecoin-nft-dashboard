@@ -1,6 +1,6 @@
 <template>
   <a
-    :href="`https://liker.land/nft/class/${id}`"
+    :href="`https://liker.land/nft/class/${classId}`"
     target="_blank"
     rel="noopener"
   >{{ name }} </a>
@@ -10,7 +10,7 @@
 export default {
   name: 'NftLink',
   props: {
-    id: {
+    classId: {
       type: String,
       required: true,
     },
