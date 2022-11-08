@@ -46,7 +46,7 @@
     >
       <td>
         <NftLink
-          :id="c.id"
+          :class-id="c.id"
           :name="c.name"
         />
       </td>
