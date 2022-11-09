@@ -1,6 +1,8 @@
 <template>
   <header>
-    <h1 class="gradient-text">LikeCoin NFT Dashboard</h1>
+    <h1 class="gradient-text">
+      LikeCoin NFT Dashboard
+    </h1>
   </header>
   <div style="margin: 10px">
     <div>Select a page</div>
