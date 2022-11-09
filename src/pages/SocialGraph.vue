@@ -67,7 +67,9 @@ import UserLink from '../components/UserLink.vue';
 
 <script>
 import {
-  IGNORE_ADDRESS_LIST, EXAMPLE_CREATOR_ADDRESS,
+  IGNORE_ADDRESS_LIST,
+  EXAMPLE_CREATOR_ADDRESS,
+  INDEXER_QUERY_LIMIT,
 } from '../config';
 import { getClass, getMetadata, indexerApi } from '../utils/proxy';
 
@@ -155,13 +157,23 @@ export default {
       if (!typeMap.has(this.type)) return;
       const type = typeMap.get(this.type);
       const params = {
+        'pagination.limit': INDEXER_QUERY_LIMIT,
+        'pagination.offset': 0,
         reverse: true,
       };
       params[type.param] = this.account;
-      const res = await indexerApi.get(`/likechain/likenft/v1/${this.type}`, { params });
-      this.response = res.data[type.responseType];
       this.responseType = type.responseType;
-      this.response = await this.aggregate(this.response);
+      let allAccountData = [];
+      let paginationCount;
+      do {
+        // eslint-disable-next-line no-await-in-loop
+        const { data } = await indexerApi.get(`/likechain/likenft/v1/${this.type}`, { params });
+        const accountData = data[type.responseType];
+        allAccountData = allAccountData.concat(accountData);
+        paginationCount = data.pagination.count;
+        params['pagination.offset'] += INDEXER_QUERY_LIMIT;
+      } while (paginationCount === INDEXER_QUERY_LIMIT);
+      this.response = await this.aggregate(allAccountData);
     },
   },
 };

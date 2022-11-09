@@ -10,3 +10,5 @@ export const IGNORE_ADDRESS_LIST = [
   // The like.co API address in testnet
   'like1yney2cqn5qdrlc50yr5l53898ufdhxafqz9gxp',
 ];
+
+export const INDEXER_QUERY_LIMIT = 100;
