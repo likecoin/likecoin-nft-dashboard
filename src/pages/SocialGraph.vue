@@ -21,40 +21,68 @@
   <h3 v-if="responseField">
     The {{ responseField }} of {{ account }}
   </h3>
-  <table v-if="response">
-    <tr>
-      <th>Account</th>
-      <th>Total Count</th>
-      <th>Collections</th>
-      <th>Total Value</th>
-    </tr>
-    <tr
-      v-for="c in response.filter(({ account }) => !ignoreList.includes(account))"
-      :key="c.account"
+  <div v-if="hasData">
+    <button
+      v-if="hasPreviousPage"
+      @click="goToPreviousPage"
     >
-      <td>
-        <UserLink
-          :wallet="c.account"
-        />
-      </td>
-      <td>{{ c.count }}</td>
-      <table>
-        <tr
-          v-for="col in c.collections"
-          :key="col.classId"
-        >
-          <td>
-            <NftLink
-              :class-id="col.classId"
-              :name="col.name"
-            />
-          </td>
-          <td><strong>{{ col.count }}</strong> x {{ col.price }}</td>
-        </tr>
-      </table>
-      <td>{{ c.totalValue }} LIKE</td>
-    </tr>
-  </table>
+      &lt;&lt; Previous
+    </button>
+    <text>Page: {{ currentPage }}</text>
+    <button
+      v-if="hasNextPage"
+      @click="goToNextPage"
+    >
+      Next >>
+    </button>
+    <table>
+      <tr>
+        <th>Account</th>
+        <th>Total Count</th>
+        <th>Collections</th>
+        <th>Total Value</th>
+      </tr>
+      <tr
+        v-for="c in currentPageData.filter(({ account }) => !ignoreList.includes(account))"
+        :key="c.account"
+      >
+        <td>
+          <UserLink
+            :wallet="c.account"
+          />
+        </td>
+        <td>{{ c.count }}</td>
+        <table>
+          <tr
+            v-for="col in c.collections"
+            :key="col.classId"
+          >
+            <td>
+              <NftLink
+                :class-id="col.classId"
+                :name="col.name"
+              />
+            </td>
+            <td><strong>{{ col.count }}</strong> x {{ col.price }}</td>
+          </tr>
+        </table>
+        <td>{{ c.totalValue }} LIKE</td>
+      </tr>
+    </table>
+    <button
+      v-if="hasPreviousPage"
+      @click="goToPreviousPage"
+    >
+      &lt;&lt; Previous
+    </button>
+    <text>Page: {{ currentPage }}</text>
+    <button
+      v-if="hasNextPage"
+      @click="goToNextPage"
+    >
+      Next >>
+    </button>
+  </div>
   <p v-else>
     No response
   </p>
@@ -111,8 +139,8 @@ export default {
     return {
       type: 'collector',
       account: EXAMPLE_CREATOR_ADDRESS,
-      currentPage: Number(this.$route.query.page),
-      response: [],
+      currentPageData: [],
+      nextPageData: [],
       ignoreList: IGNORE_ADDRESS_LIST,
     };
   },
@@ -135,12 +163,34 @@ export default {
           return 'collectors';
       }
     },
+    currentPage() {
+      return Number(this.$route.query.page) || 1;
+    },
+    previousPage() {
+      return this.currentPage - 1;
+    },
+    nextPage() {
+      return this.currentPage + 1;
+    },
+    hasData() {
+      return this.currentPageData && this.currentPageData.length > 0;
+    },
+    hasPreviousPage() {
+      return this.previousPage > 0;
+    },
+    hasNextPage() {
+      return this.nextPageData && this.nextPageData.length > 0;
+    },
+  },
+  watch: {
+    currentPage() {
+      if (!this.currentPage || !Number.isInteger(this.currentPage) || this.currentPage < 1) {
+        this.$router.push({ path: '/socialgraph', query: { page: 1 } });
+      }
+      this.load();
+    },
   },
   mounted() {
-    if (!this.currentPage || !Number.isInteger(this.currentPage) || this.currentPage < 1) {
-      this.$router.replace({ query: { page: 1 } });
-      this.currentPage = 1;
-    }
     this.load();
   },
   methods: {
@@ -163,16 +213,35 @@ export default {
         });
     },
 
-    async load() {
+    async fetchPageData(page) {
+      const i = page - 1;
       const params = {
         'pagination.limit': INDEXER_QUERY_LIMIT,
-        'pagination.offset': (this.currentPage - 1) * INDEXER_QUERY_LIMIT,
+        'pagination.offset': i * INDEXER_QUERY_LIMIT,
         reverse: true,
       };
       params[this.paramField] = this.account;
       const { data } = await indexerApi.get(`/likechain/likenft/v1/${this.type}`, { params });
       const accountData = data[this.responseField];
-      this.response = await Promise.all(this.aggregate(accountData));
+      const pageData = await Promise.all(this.aggregate(accountData));
+      return pageData;
+    },
+
+    async load() {
+      [
+        this.currentPageData,
+        this.nextPageData,
+      ] = await Promise.all([
+        // eslint-disable-next-line no-console
+        this.fetchPageData(this.currentPage).catch(console.error),
+        this.fetchPageData(this.nextPage).catch(() => []),
+      ]);
+    },
+    goToPreviousPage() {
+      this.$router.push({ path: '/socialgraph', query: { page: this.previousPage } });
+    },
+    goToNextPage() {
+      this.$router.push({ path: '/socialgraph', query: { page: this.nextPage } });
     },
   },
 };
