@@ -1,5 +1,5 @@
 <template>
-  <h2>Analysis</h2>
+  <h2>Overview</h2>
   <table>
     <tr>
       <td>Nft Count</td>

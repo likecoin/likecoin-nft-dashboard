@@ -5,13 +5,12 @@
     </h1>
   </header>
   <div style="margin: 10px">
-    <div>Select a page</div>
     <div>
       <span
         v-for="(route, i) of routes"
         :key="route.name"
       >
-        <button @click="selectPage(i)">{{ route.name }}</button>
+        <button @click="selectPage(i)">{{ route.displayName }}</button>
       </span>
     </div>
     <div class="page-container">

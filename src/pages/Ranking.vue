@@ -1,5 +1,5 @@
 <template>
-  <h2>Ranking</h2>
+  <h2>Trending NFT</h2>
   <div>
     <label>Begin: <input
       v-model="after"
