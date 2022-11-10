@@ -23,14 +23,14 @@
   </h3>
   <div v-if="hasData">
     <button
-      v-if="hasPreviousPage"
+      :disabled="!hasPreviousPage"
       @click="goToPreviousPage"
     >
       &lt;&lt; Previous
     </button>
     <text>Page: {{ currentPage }}</text>
     <button
-      v-if="hasNextPage"
+      :disabled="!hasNextPage"
       @click="goToNextPage"
     >
       Next >>
@@ -70,14 +70,14 @@
       </tr>
     </table>
     <button
-      v-if="hasPreviousPage"
+      :disabled="!hasPreviousPage"
       @click="goToPreviousPage"
     >
       &lt;&lt; Previous
     </button>
     <text>Page: {{ currentPage }}</text>
     <button
-      v-if="hasNextPage"
+      :disabled="!hasNextPage"
       @click="goToNextPage"
     >
       Next >>
@@ -139,6 +139,8 @@ export default {
     return {
       type: 'collector',
       account: EXAMPLE_CREATOR_ADDRESS,
+      currentPage: 1,
+      previousPageData: [],
       currentPageData: [],
       nextPageData: [],
       ignoreList: IGNORE_ADDRESS_LIST,
@@ -163,9 +165,6 @@ export default {
           return 'collectors';
       }
     },
-    currentPage() {
-      return Number(this.$route.query.page) || 1;
-    },
     previousPage() {
       return this.currentPage - 1;
     },
@@ -180,14 +179,6 @@ export default {
     },
     hasNextPage() {
       return this.nextPageData && this.nextPageData.length > 0;
-    },
-  },
-  watch: {
-    currentPage() {
-      if (!this.currentPage || !Number.isInteger(this.currentPage) || this.currentPage < 1) {
-        this.$router.push({ name: 'SocialGraph', query: { page: 1 } });
-      }
-      this.load();
     },
   },
   mounted() {
@@ -232,16 +223,29 @@ export default {
         this.currentPageData,
         this.nextPageData,
       ] = await Promise.all([
-        // eslint-disable-next-line no-console
-        this.fetchPageData(this.currentPage).catch(console.error),
-        this.fetchPageData(this.nextPage).catch(() => []),
+        this.fetchPageData(this.currentPage),
+        this.fetchPageData(this.nextPage),
       ]);
     },
     goToPreviousPage() {
-      this.$router.push({ name: 'SocialGraph', query: { page: this.previousPage } });
+      this.currentPage -= 1;
+      this.nextPageData = this.currentPageData;
+      this.currentPageData = this.previousPageData;
+      this.previousPageData = [];
+      if (this.hasPreviousPage) {
+        this.fetchPageData(this.previousPage).then((data) => {
+          this.previousPageData = data;
+        });
+      }
     },
     goToNextPage() {
-      this.$router.push({ name: 'SocialGraph', query: { page: this.nextPage } });
+      this.currentPage += 1;
+      this.previousPageData = this.currentPageData;
+      this.currentPageData = this.nextPageData;
+      this.nextPageData = [];
+      this.fetchPageData(this.nextPage).then((data) => {
+        this.nextPageData = data;
+      });
     },
   },
 };
