@@ -185,7 +185,7 @@ export default {
   watch: {
     currentPage() {
       if (!this.currentPage || !Number.isInteger(this.currentPage) || this.currentPage < 1) {
-        this.$router.push({ path: '/socialgraph', query: { page: 1 } });
+        this.$router.push({ name: 'SocialGraph', query: { page: 1 } });
       }
       this.load();
     },
@@ -238,10 +238,10 @@ export default {
       ]);
     },
     goToPreviousPage() {
-      this.$router.push({ path: '/socialgraph', query: { page: this.previousPage } });
+      this.$router.push({ name: 'SocialGraph', query: { page: this.previousPage } });
     },
     goToNextPage() {
-      this.$router.push({ path: '/socialgraph', query: { page: this.nextPage } });
+      this.$router.push({ name: 'SocialGraph', query: { page: this.nextPage } });
     },
   },
 };
