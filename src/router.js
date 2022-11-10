@@ -4,14 +4,21 @@ import {
   List,
   Ranking,
   SocialGraph,
+  TopCollector,
 } from './pages';
 
 export const routes = [
   {
     name: 'Analysis',
     displayName: 'Overview',
-    path: '/',
+    path: '/overview',
     component: NftAnalysis,
+  },
+  {
+    name: 'Ranking',
+    displayName: 'Top NFT',
+    path: '/',
+    component: Ranking,
   },
   {
     name: 'List',
@@ -20,10 +27,10 @@ export const routes = [
     component: List,
   },
   {
-    name: 'Ranking',
-    displayName: 'Top NFT',
-    path: '/ranking',
-    component: Ranking,
+    name: 'TopCollector',
+    displayName: 'Top Collector',
+    path: '/collector',
+    component: TopCollector,
   },
   {
     name: 'SocialGraph',
