@@ -18,8 +18,8 @@
       Load
     </button>
   </div>
-  <h3 v-if="responseType">
-    The {{ responseType }} of {{ account }}
+  <h3 v-if="responseField">
+    The {{ responseField }} of {{ account }}
   </h3>
   <table v-if="response">
     <tr>
@@ -73,17 +73,6 @@ import {
 } from '../config';
 import { getClass, getMetadata, indexerApi } from '../utils/proxy';
 
-const typeMap = new Map([
-  [
-    'collector',
-    { param: 'creator', responseType: 'collectors' },
-  ],
-  [
-    'creator',
-    { param: 'collector', responseType: 'creators' },
-  ],
-]);
-
 async function getCollection({ iscn_id_prefix: iscnIdPrefix, class_id: classId, count }) {
   const collection = {
     iscnIdPrefix,
@@ -122,17 +111,41 @@ export default {
     return {
       type: 'collector',
       account: EXAMPLE_CREATOR_ADDRESS,
-      responseType: '',
+      currentPage: Number(this.$route.query.page),
       response: [],
       ignoreList: IGNORE_ADDRESS_LIST,
     };
   },
+  computed: {
+    paramField() {
+      switch (this.type) {
+        case 'creator':
+          return 'collector';
+        case 'collector':
+        default:
+          return 'creator';
+      }
+    },
+    responseField() {
+      switch (this.type) {
+        case 'creator':
+          return 'creators';
+        case 'collector':
+        default:
+          return 'collectors';
+      }
+    },
+  },
   mounted() {
+    if (!this.currentPage || !Number.isInteger(this.currentPage) || this.currentPage < 1) {
+      this.$router.replace({ query: { page: 1 } });
+      this.currentPage = 1;
+    }
     this.load();
   },
   methods: {
-    async aggregate(accounts) {
-      const promises = accounts
+    aggregate(accounts) {
+      return accounts
         .filter((a) => !this.ignoreList.includes(a.account))
         .map(async (a) => {
           const account = {
@@ -148,32 +161,18 @@ export default {
           );
           return account;
         });
-      return (await Promise.all(promises)).sort(
-        (a, b) => b.totalValue - a.totalValue,
-      );
     },
 
     async load() {
-      if (!typeMap.has(this.type)) return;
-      const type = typeMap.get(this.type);
       const params = {
         'pagination.limit': INDEXER_QUERY_LIMIT,
-        'pagination.offset': 0,
+        'pagination.offset': (this.currentPage - 1) * INDEXER_QUERY_LIMIT,
         reverse: true,
       };
-      params[type.param] = this.account;
-      this.responseType = type.responseType;
-      let allAccountData = [];
-      let paginationCount;
-      do {
-        // eslint-disable-next-line no-await-in-loop
-        const { data } = await indexerApi.get(`/likechain/likenft/v1/${this.type}`, { params });
-        const accountData = data[type.responseType];
-        allAccountData = allAccountData.concat(accountData);
-        paginationCount = data.pagination.count;
-        params['pagination.offset'] += INDEXER_QUERY_LIMIT;
-      } while (paginationCount === INDEXER_QUERY_LIMIT);
-      this.response = await this.aggregate(allAccountData);
+      params[this.paramField] = this.account;
+      const { data } = await indexerApi.get(`/likechain/likenft/v1/${this.type}`, { params });
+      const accountData = data[this.responseField];
+      this.response = await Promise.all(this.aggregate(accountData));
     },
   },
 };
