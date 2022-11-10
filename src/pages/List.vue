@@ -2,10 +2,10 @@
   <h2>Latest NFT</h2>
   <div>
     <button @click="onReset">
-      Back to First page
+      Back to First
     </button>
     <button @click="load">
-      Load Next Page
+      Next Page
     </button>
     <button @click="onReverseOrder">
       Reverse Order
