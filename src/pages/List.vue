@@ -1,5 +1,5 @@
 <template>
-  <h2>NFT List</h2>
+  <h2>Latest NFT</h2>
   <div>
     <button @click="onReset">
       Back to First page

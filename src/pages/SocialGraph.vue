@@ -1,5 +1,5 @@
 <template>
-  <h2>Social Graph</h2>
+  <h2>Search by wallet</h2>
   <div>
     <label>
       Get
