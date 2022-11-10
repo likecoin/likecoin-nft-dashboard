@@ -1,6 +1,23 @@
 <template>
   <h2>Trending NFT</h2>
   <div>
+    <button @click="setRecentDateRange(7)">
+      7 days
+    </button>
+    <button @click="setRecentDateRange(30)">
+      30 days
+    </button>
+    <button @click="setRecentDateRange(0)">
+      All time
+    </button>
+  </div>
+  <br>
+  <div v-if="!showFilter">
+    <button @click="showFilter = !showFilter">
+      Show Filter
+    </button>
+  </div>
+  <div v-else>
     <label>Begin: <input
       v-model="after"
       type="date"
@@ -31,7 +48,10 @@
       Search
     </button>
   </div>
-  <table v-if="classes">
+  <div v-if="isLoading">
+    Loading...
+  </div>
+  <table v-else-if="classes">
     <tr>
       <th>Name</th>
       <th>Creator</th>
@@ -41,7 +61,7 @@
       <th>Last Sold Price</th>
     </tr>
     <tr
-      v-for="c in classes.slice(0, 10)"
+      v-for="c in classes"
       :key="c.id"
     >
       <td>
@@ -81,9 +101,11 @@ export default {
   name: 'NftRanking',
   data() {
     return {
+      isLoading: false,
+      showFilter: false,
       classes: [],
-      after: '',
-      before: '',
+      after: '2022-07-01',
+      before: this.getDateString(new Date()),
       stakeholder: '',
       creator: '',
       collector: '',
@@ -91,46 +113,72 @@ export default {
     };
   },
   async mounted() {
+    this.setRecentDateRange(7);
     await this.load();
   },
   methods: {
+    getDateString(date) {
+      return date.toISOString().split('T')[0];
+    },
+    setRecentDateRange(recent) {
+      const now = new Date();
+      this.before = this.getDateString(now);
+      if (recent) {
+        const date = new Date();
+        date.setDate(now.getDate() - recent);
+        this.after = this.getDateString(date);
+      } else {
+        this.after = '2022-07-01';
+      }
+      this.load();
+    },
     async load() {
       const after = new Date(this.after).getTime() / 1000 || 0;
       const before = new Date(this.before).getTime() / 1000 || 0;
-      const res = await indexerApi.get('/likechain/likenft/v1/ranking', {
-        params: {
-          ignore_list: IGNORE_ADDRESS_LIST,
-          after,
-          before,
-          stakeholder_name: this.stakeholder,
-          creator: this.creator,
-          collector: this.collector,
-          type: this.type,
-          limit: 15,
-        },
-      });
-      this.classes = res.data.classes;
-      if (!this.classes) return;
-      const promises = this.classes.map((c) => getClass(c.id)
-        .then((res) => {
-          const { data: { lastSoldPrice, metadata: { creatorWallet: creator, soldCount } } } = res;
-          return {
-            ...c,
-            soldCount,
-            price: lastSoldPrice,
-            creator,
-          };
-        })
-        .catch((err) => {
-          // eslint-disable-next-line no-console
-          console.error(err);
-          return {
-            ...c,
-            soldCount: 0,
-            price: 0,
-          };
-        }));
-      this.classes = (await Promise.all(promises)).sort((a, b) => b.soldCount - a.soldCount);
+      try {
+        this.isLoading = true;
+        const res = await indexerApi.get('/likechain/likenft/v1/ranking', {
+          params: {
+            ignore_list: IGNORE_ADDRESS_LIST,
+            after,
+            before,
+            stakeholder_name: this.stakeholder,
+            creator: this.creator,
+            collector: this.collector,
+            type: this.type,
+            limit: 20,
+          },
+        });
+        this.classes = res.data.classes;
+        if (!this.classes) return;
+        const promises = this.classes.map((c) => getClass(c.id)
+          .then((res) => {
+            const {
+              data: {
+                lastSoldPrice,
+                metadata: { creatorWallet: creator, soldCount },
+              },
+            } = res;
+            return {
+              ...c,
+              soldCount,
+              price: lastSoldPrice,
+              creator,
+            };
+          })
+          .catch((err) => {
+            // eslint-disable-next-line no-console
+            console.error(err);
+            return {
+              ...c,
+              soldCount: 0,
+              price: 0,
+            };
+          }));
+        this.classes = (await Promise.all(promises)).sort((a, b) => b.soldCount - a.soldCount);
+      } finally {
+        this.isLoading = false;
+      }
     },
   },
 };
