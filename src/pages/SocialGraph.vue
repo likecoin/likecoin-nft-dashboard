@@ -185,8 +185,8 @@ export default {
     this.load();
   },
   methods: {
-    aggregate(accounts) {
-      return accounts
+    async aggregate(accounts) {
+      const promises = accounts
         .filter((a) => !this.ignoreList.includes(a.account))
         .map(async (a) => {
           const account = {
@@ -202,6 +202,9 @@ export default {
           );
           return account;
         });
+      return (await Promise.all(promises)).sort(
+        (a, b) => b.totalValue - a.totalValue,
+      );
     },
 
     async fetchPageData(page) {
@@ -214,7 +217,7 @@ export default {
       params[this.paramField] = this.account;
       const { data } = await indexerApi.get(`/likechain/likenft/v1/${this.type}`, { params });
       const accountData = data[this.responseField] || [];
-      const pageData = await Promise.all(this.aggregate(accountData));
+      const pageData = await this.aggregate(accountData);
       return pageData;
     },
 
@@ -234,7 +237,7 @@ export default {
       if (this.hasPreviousPage) {
         this.previousPageData = await this.fetchPageData(this.previousPage);
       } else {
-      this.previousPageData = [];
+        this.previousPageData = [];
       }
     },
     async goToNextPage() {
