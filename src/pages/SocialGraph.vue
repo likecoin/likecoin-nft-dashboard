@@ -28,12 +28,12 @@
     >
       &lt;&lt; Previous
     </button>
-    <text>Page: {{ currentPage }}</text>
+    <span>Page {{ currentPage }}</span>
     <button
       :disabled="!hasNextPage"
       @click="goToNextPage"
     >
-      Next >>
+      Next &gt;&gt;
     </button>
     <table>
       <tr>
@@ -75,12 +75,12 @@
     >
       &lt;&lt; Previous
     </button>
-    <text>Page: {{ currentPage }}</text>
+    <span>Page {{ currentPage }}</span>
     <button
       :disabled="!hasNextPage"
       @click="goToNextPage"
     >
-      Next >>
+      Next &gt;&gt;
     </button>
   </div>
   <p v-else>
@@ -100,6 +100,8 @@ import {
   INDEXER_QUERY_LIMIT,
 } from '../config';
 import { getClass, getMetadata, indexerApi } from '../utils/proxy';
+
+const INITIAL_PAGE = 1;
 
 async function getCollection({ iscn_id_prefix: iscnIdPrefix, class_id: classId, count }) {
   const collection = {
@@ -207,7 +209,7 @@ export default {
       );
     },
 
-    async fetchPageData(page) {
+    async fetchPageData(page = INITIAL_PAGE) {
       const i = page - 1;
       const params = {
         'pagination.limit': INDEXER_QUERY_LIMIT,
