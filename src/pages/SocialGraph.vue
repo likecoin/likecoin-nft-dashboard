@@ -213,7 +213,7 @@ export default {
       };
       params[this.paramField] = this.account;
       const { data } = await indexerApi.get(`/likechain/likenft/v1/${this.type}`, { params });
-      const accountData = data[this.responseField];
+      const accountData = data[this.responseField] || [];
       const pageData = await Promise.all(this.aggregate(accountData));
       return pageData;
     },
@@ -227,25 +227,21 @@ export default {
         this.fetchPageData(this.nextPage),
       ]);
     },
-    goToPreviousPage() {
+    async goToPreviousPage() {
       this.currentPage -= 1;
       this.nextPageData = this.currentPageData;
       this.currentPageData = this.previousPageData;
-      this.previousPageData = [];
       if (this.hasPreviousPage) {
-        this.fetchPageData(this.previousPage).then((data) => {
-          this.previousPageData = data;
-        });
+        this.previousPageData = await this.fetchPageData(this.previousPage);
+      } else {
+      this.previousPageData = [];
       }
     },
-    goToNextPage() {
+    async goToNextPage() {
       this.currentPage += 1;
       this.previousPageData = this.currentPageData;
       this.currentPageData = this.nextPageData;
-      this.nextPageData = [];
-      this.fetchPageData(this.nextPage).then((data) => {
-        this.nextPageData = data;
-      });
+      this.nextPageData = await this.fetchPageData(this.nextPage);
     },
   },
 };
