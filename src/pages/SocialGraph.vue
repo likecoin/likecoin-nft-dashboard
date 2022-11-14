@@ -18,43 +18,71 @@
       Load
     </button>
   </div>
-  <h3 v-if="responseType">
-    The {{ responseType }} of {{ account }}
+  <h3 v-if="responseField">
+    The {{ responseField }} of {{ account }}
   </h3>
-  <table v-if="response">
-    <tr>
-      <th>Account</th>
-      <th>Total Count</th>
-      <th>Collections</th>
-      <th>Total Value</th>
-    </tr>
-    <tr
-      v-for="c in response.filter(({ account }) => !ignoreList.includes(account))"
-      :key="c.account"
+  <div v-if="hasData">
+    <button
+      :disabled="!hasPreviousPage"
+      @click="goToPreviousPage"
     >
-      <td>
-        <UserLink
-          :wallet="c.account"
-        />
-      </td>
-      <td>{{ c.count }}</td>
-      <table>
-        <tr
-          v-for="col in c.collections"
-          :key="col.classId"
-        >
-          <td>
-            <NftLink
-              :class-id="col.classId"
-              :name="col.name"
-            />
-          </td>
-          <td><strong>{{ col.count }}</strong> x {{ col.price }}</td>
-        </tr>
-      </table>
-      <td>{{ c.totalValue }} LIKE</td>
-    </tr>
-  </table>
+      &lt;&lt; Previous
+    </button>
+    <span>Page {{ currentPage }}</span>
+    <button
+      :disabled="!hasNextPage"
+      @click="goToNextPage"
+    >
+      Next &gt;&gt;
+    </button>
+    <table>
+      <tr>
+        <th>Account</th>
+        <th>Total Count</th>
+        <th>Collections</th>
+        <th>Total Value</th>
+      </tr>
+      <tr
+        v-for="c in currentPageData.filter(({ account }) => !ignoreList.includes(account))"
+        :key="c.account"
+      >
+        <td>
+          <UserLink
+            :wallet="c.account"
+          />
+        </td>
+        <td>{{ c.count }}</td>
+        <table>
+          <tr
+            v-for="col in c.collections"
+            :key="col.classId"
+          >
+            <td>
+              <NftLink
+                :class-id="col.classId"
+                :name="col.name"
+              />
+            </td>
+            <td><strong>{{ col.count }}</strong> x {{ col.price }}</td>
+          </tr>
+        </table>
+        <td>{{ c.totalValue }} LIKE</td>
+      </tr>
+    </table>
+    <button
+      :disabled="!hasPreviousPage"
+      @click="goToPreviousPage"
+    >
+      &lt;&lt; Previous
+    </button>
+    <span>Page {{ currentPage }}</span>
+    <button
+      :disabled="!hasNextPage"
+      @click="goToNextPage"
+    >
+      Next &gt;&gt;
+    </button>
+  </div>
   <p v-else>
     No response
   </p>
@@ -73,16 +101,7 @@ import {
 } from '../config';
 import { getClass, getMetadata, indexerApi } from '../utils/proxy';
 
-const typeMap = new Map([
-  [
-    'collector',
-    { param: 'creator', responseType: 'collectors' },
-  ],
-  [
-    'creator',
-    { param: 'collector', responseType: 'creators' },
-  ],
-]);
+const INITIAL_PAGE = 1;
 
 async function getCollection({ iscn_id_prefix: iscnIdPrefix, class_id: classId, count }) {
   const collection = {
@@ -122,10 +141,47 @@ export default {
     return {
       type: 'collector',
       account: EXAMPLE_CREATOR_ADDRESS,
-      responseType: '',
-      response: [],
+      currentPage: 1,
+      previousPageData: [],
+      currentPageData: [],
+      nextPageData: [],
       ignoreList: IGNORE_ADDRESS_LIST,
     };
+  },
+  computed: {
+    paramField() {
+      switch (this.type) {
+        case 'creator':
+          return 'collector';
+        case 'collector':
+        default:
+          return 'creator';
+      }
+    },
+    responseField() {
+      switch (this.type) {
+        case 'creator':
+          return 'creators';
+        case 'collector':
+        default:
+          return 'collectors';
+      }
+    },
+    previousPage() {
+      return this.currentPage - 1;
+    },
+    nextPage() {
+      return this.currentPage + 1;
+    },
+    hasData() {
+      return this.currentPageData && this.currentPageData.length > 0;
+    },
+    hasPreviousPage() {
+      return this.previousPage > 0;
+    },
+    hasNextPage() {
+      return this.nextPageData && this.nextPageData.length > 0;
+    },
   },
   mounted() {
     this.load();
@@ -153,27 +209,44 @@ export default {
       );
     },
 
-    async load() {
-      if (!typeMap.has(this.type)) return;
-      const type = typeMap.get(this.type);
+    async fetchPageData(page = INITIAL_PAGE) {
+      const i = page - 1;
       const params = {
         'pagination.limit': INDEXER_QUERY_LIMIT,
-        'pagination.offset': 0,
+        'pagination.offset': i * INDEXER_QUERY_LIMIT,
         reverse: true,
       };
-      params[type.param] = this.account;
-      this.responseType = type.responseType;
-      let allAccountData = [];
-      let paginationCount;
-      do {
-        // eslint-disable-next-line no-await-in-loop
-        const { data } = await indexerApi.get(`/likechain/likenft/v1/${this.type}`, { params });
-        const accountData = data[type.responseType];
-        allAccountData = allAccountData.concat(accountData);
-        paginationCount = data.pagination.count;
-        params['pagination.offset'] += INDEXER_QUERY_LIMIT;
-      } while (paginationCount === INDEXER_QUERY_LIMIT);
-      this.response = await this.aggregate(allAccountData);
+      params[this.paramField] = this.account;
+      const { data } = await indexerApi.get(`/likechain/likenft/v1/${this.type}`, { params });
+      const accountData = data[this.responseField] || [];
+      const pageData = await this.aggregate(accountData);
+      return pageData;
+    },
+
+    async load() {
+      [
+        this.currentPageData,
+        this.nextPageData,
+      ] = await Promise.all([
+        this.fetchPageData(this.currentPage),
+        this.fetchPageData(this.nextPage),
+      ]);
+    },
+    async goToPreviousPage() {
+      this.currentPage -= 1;
+      this.nextPageData = this.currentPageData;
+      this.currentPageData = this.previousPageData;
+      if (this.hasPreviousPage) {
+        this.previousPageData = await this.fetchPageData(this.previousPage);
+      } else {
+        this.previousPageData = [];
+      }
+    },
+    async goToNextPage() {
+      this.currentPage += 1;
+      this.previousPageData = this.currentPageData;
+      this.currentPageData = this.nextPageData;
+      this.nextPageData = await this.fetchPageData(this.nextPage);
     },
   },
 };
