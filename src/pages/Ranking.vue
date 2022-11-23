@@ -4,6 +4,9 @@
     <button @click="setRecentDateRange(7)">
       7 days
     </button>
+    <button @click="setRecentDateRange(14)">
+      14 days
+    </button>
     <button @click="setRecentDateRange(30)">
       30 days
     </button>
