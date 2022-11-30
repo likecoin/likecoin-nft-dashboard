@@ -12,3 +12,5 @@ export const IGNORE_ADDRESS_LIST = [
 ];
 
 export const INDEXER_QUERY_LIMIT = 100;
+
+export const COOLDOWN_TIME_IN_MS = 1000 * 60 * 5;
