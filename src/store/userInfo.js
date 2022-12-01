@@ -22,7 +22,6 @@ export const useUserInfoStore = defineStore('userInfo', {
         if (error.response?.status !== 404) {
           // remove the key to unblock future requests
           this.likerIdMap.delete(address);
-          this.fetchLikerId(address);
         }
       }
     },
