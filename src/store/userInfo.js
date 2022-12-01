@@ -1,29 +1,41 @@
 import { defineStore } from 'pinia';
 import axios from 'axios';
 
+import { isValidAddress } from '../utils/util';
 import { API_PUBLIC_URL } from '../config';
 
 export const useUserInfoStore = defineStore('userInfo', {
   state: () => ({
-    likerIdMap: new Map(),
+    likerIdByAddressMap: new Map(),
+    addressByLikerIdMap: new Map(),
   }),
   getters: {
-    likerId: (state) => (address) => state.likerIdMap.get(address),
+    getLikerIdByAddress: (state) => (address) => state.likerIdByAddressMap.get(address),
+    getAddressByLikerId: (state) => (likerId) => state.addressByLikerIdMap.get(likerId),
   },
   actions: {
-    async fetchLikerId(address) {
-      if (!address || this.likerIdMap.has(address)) return;
+    async fetchLikerIdByAddress(address) {
+      if (!isValidAddress(address) || this.likerIdByAddressMap.has(address)) return;
       try {
         // set the key to prevent duplicate requests
-        this.likerIdMap.set(address, null);
+        this.likerIdByAddressMap.set(address, null);
         const { data } = await axios.get(`${API_PUBLIC_URL}/users/addr/${address}/min`);
-        this.likerIdMap.set(address, data.user);
+        const likerId = data.user;
+        this.likerIdByAddressMap.set(address, likerId);
+        this.addressByLikerIdMap.set(likerId, address);
       } catch (error) {
         if (error.response?.status !== 404) {
           // remove the key to unblock future requests
-          this.likerIdMap.delete(address);
+          this.likerIdByAddressMap.delete(address);
         }
       }
+    },
+    async fetchAddressByLikerId(likerId) {
+      if (!likerId) return;
+      const { data } = await axios.get(`${API_PUBLIC_URL}/users/id/${likerId}/min`);
+      const address = data.likeWallet;
+      this.likerIdByAddressMap.set(address, likerId);
+      this.addressByLikerIdMap.set(likerId, address);
     },
   },
 });
