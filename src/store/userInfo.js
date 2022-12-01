@@ -15,6 +15,7 @@ export const useUserInfoStore = defineStore('userInfo', {
     async fetchLikerId(address) {
       if (
         !address
+        || this.likerIdMap.has(address)
         || (
           this.fetchTimestampMap.has(address)
           && Date.now() - this.fetchTimestampMap.get(address) < COOLDOWN_TIME_IN_MS
@@ -25,7 +26,12 @@ export const useUserInfoStore = defineStore('userInfo', {
         const { data } = await axios.get(`${API_PUBLIC_URL}/users/addr/${address}/min`);
         this.likerIdMap.set(address, data.user);
       } catch (error) {
-        // no-op
+        if (error.response?.status === 404) {
+          this.likerIdMap.set(address, null);
+        } else {
+          this.fetchTimestampMap.delete(address);
+          this.fetchLikerId(address);
+        }
       }
     },
   },
