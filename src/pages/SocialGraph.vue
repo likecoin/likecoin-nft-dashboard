@@ -186,9 +186,6 @@ export default {
     hasNextPage() {
       return this.nextPageData && this.nextPageData.length > 0;
     },
-    addressOfLikerId() {
-      return useUserInfoStore().getAddressByLikerId(this.inputString);
-    },
   },
   mounted() {
     this.load();
@@ -232,25 +229,8 @@ export default {
     },
 
     async load() {
-      if (isValidAddress(this.inputString)) {
-        this.address = this.inputString;
-      } else if (this.addressOfLikerId) {
-        this.address = this.addressOfLikerId;
-      } else {
-        try {
-          await useUserInfoStore().fetchAddressByLikerId(this.inputString);
-          this.address = this.addressOfLikerId;
-        } catch (error) {
-          if (error.response?.status === 404) {
-            // eslint-disable-next-line no-alert
-            alert('Liker ID not found');
-          } else {
-            // eslint-disable-next-line no-alert
-            alert(error);
-          }
-          return;
-        }
-      }
+      await this.updateQueryAddress();
+      if (!this.address) return;
       [
         this.currentPageData,
         this.nextPageData,
@@ -259,6 +239,29 @@ export default {
         this.fetchPageData(this.nextPage),
       ]);
       this.updateTitle();
+    },
+    async updateQueryAddress() {
+      if (isValidAddress(this.inputString)) {
+        this.address = this.inputString;
+        return;
+      }
+      if (useUserInfoStore().getAddressByLikerId(this.inputString)) {
+        this.address = useUserInfoStore().getAddressByLikerId(this.inputString);
+        return;
+      }
+      try {
+        await useUserInfoStore().fetchAddressByLikerId(this.inputString);
+        this.address = useUserInfoStore().getAddressByLikerId(this.inputString);
+      } catch (error) {
+        if (error.response?.status === 404) {
+          // eslint-disable-next-line no-alert
+          alert('Liker ID not found');
+        } else {
+          // eslint-disable-next-line no-alert
+          alert(error);
+        }
+        this.address = null;
+      }
     },
     updateTitle() {
       this.title = `The ${this.type}s of ${this.inputString}`;
