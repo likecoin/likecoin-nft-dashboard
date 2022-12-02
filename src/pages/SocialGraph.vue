@@ -1,5 +1,5 @@
 <template>
-  <h2>Search by wallet</h2>
+  <h2>Search by wallet or Liker ID</h2>
   <div>
     <label>
       Get
@@ -9,7 +9,7 @@
       </select>
       Of
       <input
-        v-model="account"
+        v-model="inputString"
         type="text"
         size="40"
       >
@@ -19,7 +19,7 @@
     </button>
   </div>
   <h3 v-if="responseField">
-    The {{ responseField }} of {{ account }}
+    {{ title }}
   </h3>
   <div v-if="hasData">
     <button
@@ -100,6 +100,8 @@ import {
   INDEXER_QUERY_LIMIT,
 } from '../config';
 import { getClass, getMetadata, indexerApi } from '../utils/proxy';
+import { isValidAddress } from '../utils/util';
+import { useUserInfoStore } from '../store/userInfo.js';
 
 const INITIAL_PAGE = 1;
 
@@ -140,7 +142,9 @@ export default {
   data() {
     return {
       type: 'collector',
-      account: EXAMPLE_CREATOR_ADDRESS,
+      inputString: EXAMPLE_CREATOR_ADDRESS,
+      address: '',
+      title: '',
       currentPage: 1,
       previousPageData: [],
       currentPageData: [],
@@ -210,13 +214,14 @@ export default {
     },
 
     async fetchPageData(page = INITIAL_PAGE) {
+      if (!this.address) return [];
       const i = page - 1;
       const params = {
         'pagination.limit': INDEXER_QUERY_LIMIT,
         'pagination.offset': i * INDEXER_QUERY_LIMIT,
         reverse: true,
       };
-      params[this.paramField] = this.account;
+      params[this.paramField] = this.address;
       const { data } = await indexerApi.get(`/likechain/likenft/v1/${this.type}`, { params });
       const accountData = data[this.responseField] || [];
       const pageData = await this.aggregate(accountData);
@@ -224,6 +229,8 @@ export default {
     },
 
     async load() {
+      await this.updateQueryAddress();
+      if (!this.address) return;
       [
         this.currentPageData,
         this.nextPageData,
@@ -231,6 +238,33 @@ export default {
         this.fetchPageData(this.currentPage),
         this.fetchPageData(this.nextPage),
       ]);
+      this.updateTitle();
+    },
+    async updateQueryAddress() {
+      if (isValidAddress(this.inputString)) {
+        this.address = this.inputString;
+        return;
+      }
+      if (useUserInfoStore().getAddressByLikerId(this.inputString)) {
+        this.address = useUserInfoStore().getAddressByLikerId(this.inputString);
+        return;
+      }
+      try {
+        await useUserInfoStore().fetchAddressByLikerId(this.inputString);
+        this.address = useUserInfoStore().getAddressByLikerId(this.inputString);
+      } catch (error) {
+        if (error.response?.status === 404) {
+          // eslint-disable-next-line no-alert
+          alert('Liker ID not found');
+        } else {
+          // eslint-disable-next-line no-alert
+          alert(error);
+        }
+        this.address = null;
+      }
+    },
+    updateTitle() {
+      this.title = `The ${this.type}s of ${this.inputString}`;
     },
     async goToPreviousPage() {
       this.currentPage -= 1;

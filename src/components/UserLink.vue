@@ -19,11 +19,11 @@ export default {
   },
   computed: {
     likerId() {
-      return useUserInfoStore().likerId(this.wallet);
+      return useUserInfoStore().getLikerIdByAddress(this.wallet);
     },
   },
   mounted() {
-    useUserInfoStore().fetchLikerId(this.wallet);
+    useUserInfoStore().fetchLikerIdByAddress(this.wallet);
   },
 };
 </script>
