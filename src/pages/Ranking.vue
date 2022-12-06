@@ -67,7 +67,6 @@
     <tr>
       <th>Name</th>
       <th>Creator</th>
-      <th>NFT ID</th>
       <th>Description</th>
       <th>Sold Count</th>
       <th>Last Sold Price</th>
@@ -87,7 +86,6 @@
           :wallet="c.creator"
         />
       </td>
-      <td>{{ c.parent.iscn_id_prefix }}<br>{{ c.id }}</td>
       <td>{{ c.description }}</td>
       <td>{{ c.soldCount }}</td>
       <td>{{ c.price }} LIKE</td>
