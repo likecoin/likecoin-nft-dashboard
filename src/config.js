@@ -12,3 +12,5 @@ export const IGNORE_ADDRESS_LIST = [
 ];
 
 export const INDEXER_QUERY_LIMIT = 100;
+
+export const EARLEST_NFT_DATE = '2022-07-01';

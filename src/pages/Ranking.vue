@@ -30,6 +30,15 @@
       type="date"
     ></label>
     <br>
+    <label>Created Date from <input
+      v-model="createdAfter"
+      type="date"
+    ></label>
+    <label> to <input
+      v-model="createdBefore"
+      type="date"
+    ></label>
+    <br>
     <label>Stakeholder Name: <input
       v-model="stakeholder"
       type="text"
@@ -97,6 +106,7 @@ import UserLink from '../components/UserLink.vue';
 <script>
 import {
   IGNORE_ADDRESS_LIST,
+  EARLEST_NFT_DATE,
 } from '../config';
 import { getClass, indexerApi } from '../utils/proxy.js';
 
@@ -107,8 +117,10 @@ export default {
       isLoading: false,
       showFilter: false,
       classes: [],
-      after: '2022-07-01',
+      after: EARLEST_NFT_DATE,
       before: this.getDateString(new Date()),
+      createdAfter: EARLEST_NFT_DATE,
+      createdBefore: this.getDateString(new Date()),
       stakeholder: '',
       creator: '',
       collector: '',
@@ -131,13 +143,15 @@ export default {
         date.setDate(now.getDate() - recent);
         this.after = this.getDateString(date);
       } else {
-        this.after = '2022-07-01';
+        this.after = EARLEST_NFT_DATE;
       }
       this.load();
     },
     async load() {
       const after = new Date(this.after).getTime() / 1000 || 0;
       const before = new Date(this.before).getTime() / 1000 || 0;
+      const createdAfter = new Date(this.createdAfter).getTime() / 1000 || 0;
+      const createdBefore = new Date(this.createdBefore).getTime() / 1000 || 0;
       try {
         this.isLoading = true;
         const res = await indexerApi.get('/likechain/likenft/v1/ranking', {
@@ -145,6 +159,8 @@ export default {
             ignore_list: IGNORE_ADDRESS_LIST,
             after,
             before,
+            created_after: createdAfter,
+            created_before: createdBefore,
             stakeholder_name: this.stakeholder,
             creator: this.creator,
             collector: this.collector,
