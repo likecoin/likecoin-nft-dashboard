@@ -1,4 +1,4 @@
-# likenft-sample
+# LikeCoin NFT Dashboard
 
 ## Project setup
 ```
