@@ -214,7 +214,6 @@ export default {
     },
 
     async fetchPageData(page = INITIAL_PAGE) {
-      if (!this.address) return [];
       const i = page - 1;
       const params = {
         'pagination.limit': INDEXER_QUERY_LIMIT,
@@ -230,7 +229,6 @@ export default {
 
     async load() {
       await this.updateQueryAddress();
-      if (!this.address) return;
       [
         this.currentPageData,
         this.nextPageData,
@@ -241,6 +239,10 @@ export default {
       this.updateTitle();
     },
     async updateQueryAddress() {
+      if (!this.inputString) {
+        this.address = '';
+        return;
+      }
       if (isValidAddress(this.inputString)) {
         this.address = this.inputString;
         return;
