@@ -43,7 +43,7 @@
         <th>Total Value</th>
       </tr>
       <tr
-        v-for="c in currentPageData.filter(({ account }) => !ignoreList.includes(account))"
+        v-for="c in currentPageData"
         :key="c.account"
       >
         <td>
@@ -149,7 +149,6 @@ export default {
       previousPageData: [],
       currentPageData: [],
       nextPageData: [],
-      ignoreList: IGNORE_ADDRESS_LIST,
     };
   },
   computed: {
@@ -193,7 +192,6 @@ export default {
   methods: {
     async aggregate(accounts) {
       const promises = accounts
-        .filter((a) => !this.ignoreList.includes(a.account))
         .map(async (a) => {
           const account = {
             account: a.account,
@@ -218,6 +216,7 @@ export default {
       const params = {
         'pagination.limit': INDEXER_QUERY_LIMIT,
         'pagination.offset': i * INDEXER_QUERY_LIMIT,
+        ignore_list: IGNORE_ADDRESS_LIST,
         reverse: true,
       };
       params[this.paramField] = this.address;
