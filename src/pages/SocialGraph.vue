@@ -21,6 +21,9 @@
   <h3 v-if="responseField">
     {{ title }}
   </h3>
+  <button @click="exportPageAddressList">
+    Export addresses in currrent page
+  </button>
   <div v-if="hasData">
     <button
       :disabled="!hasPreviousPage"
@@ -266,6 +269,14 @@ export default {
     },
     updateTitle() {
       this.title = `The ${this.type}s of ${this.inputString}`;
+    },
+    exportPageAddressList() {
+      const accounts = this.currentPageData.map((c) => c.account);
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([accounts.join('\n')], { type: 'text/csv' }));
+      a.download = `${this.type}_of_${this.inputString}_page_${this.currentPage}.csv`;
+      a.click();
+      a.remove();
     },
     async goToPreviousPage() {
       this.currentPage -= 1;
