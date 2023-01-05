@@ -17,48 +17,55 @@
   <br>
   <div v-if="!showFilter">
     <button @click="showFilter = !showFilter">
-      Show Filter
+      Advanced
     </button>
   </div>
   <div v-else>
-    <label>Begin: <input
-      v-model="after"
-      type="date"
-    ></label>
-    <label>End: <input
-      v-model="before"
-      type="date"
-    ></label>
-    <br>
-    <label>Created Date from <input
-      v-model="createdAfter"
-      type="date"
-    ></label>
-    <label> to <input
-      v-model="createdBefore"
-      type="date"
-    ></label>
-    <br>
-    <label>Stakeholder Name: <input
-      v-model="stakeholder"
-      type="text"
-    ></label>
-    <label>Type: <input
-      v-model="type"
-      type="text"
-    ></label>
-    <br>
-    <label>Creator: <input
-      v-model="creator"
-      type="text"
-    ></label>
-    <label>Collector: <input
-      v-model="collector"
-      type="text"
-    ></label>
-    <button @click="load">
-      Search
-    </button>
+    <section>
+      <label>Begin: <input
+        v-model="after"
+        type="date"
+      ></label>
+      <label>End: <input
+        v-model="before"
+        type="date"
+      ></label>
+      <br>
+      <label>Created Date from <input
+        v-model="createdAfter"
+        type="date"
+      ></label>
+      <label> to <input
+        v-model="createdBefore"
+        type="date"
+      ></label>
+      <br>
+      <label>Stakeholder Name: <input
+        v-model="stakeholder"
+        type="text"
+      ></label>
+      <label>Type: <input
+        v-model="type"
+        type="text"
+      ></label>
+      <br>
+      <label>Creator: <input
+        v-model="creator"
+        type="text"
+      ></label>
+      <label>Collector: <input
+        v-model="collector"
+        type="text"
+      ></label>
+      <button @click="load">
+        Search
+      </button>
+    </section>
+    <section>
+      <button @click="exportPageData">
+        Export currrent page
+      </button>
+    </section>
   </div>
   <div v-if="isLoading">
     Loading...
@@ -107,6 +114,7 @@ import {
   EARLEST_NFT_DATE,
 } from '../config';
 import { getClass, indexerApi } from '../utils/proxy.js';
+import { downloadAsFile } from '../utils/util';
 
 export default {
   name: 'NftRanking',
@@ -144,6 +152,10 @@ export default {
         this.after = EARLEST_NFT_DATE;
       }
       this.load();
+    },
+    exportPageData() {
+      const contents = this.classes.map((c) => `${c.id},"${c.name.replaceAll('"', '""')}",${c.creator},"${c.description.replaceAll('"', '""')}", ${c.soldCount}, ${c.price}`);
+      downloadAsFile(contents.join('\n'), 'nft_data.csv', 'text/csv');
     },
     async load() {
       const after = new Date(this.after).getTime() / 1000 || 0;

@@ -103,7 +103,7 @@ import {
   INDEXER_QUERY_LIMIT,
 } from '../config';
 import { getClass, getMetadata, indexerApi } from '../utils/proxy';
-import { isValidAddress } from '../utils/util';
+import { isValidAddress, downloadAsFile } from '../utils/util';
 import { useUserInfoStore } from '../store/userInfo.js';
 
 const INITIAL_PAGE = 1;
@@ -272,11 +272,7 @@ export default {
     },
     exportPageAddressList() {
       const accounts = this.currentPageData.map((c) => c.account);
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(new Blob([accounts.join('\n')], { type: 'text/csv' }));
-      a.download = `${this.type}_of_${this.inputString}_page_${this.currentPage}.csv`;
-      a.click();
-      a.remove();
+      downloadAsFile(accounts.join('\n'), `${this.type}_of_${this.inputString}_page_${this.currentPage}.csv`, 'text/csv');
     },
     async goToPreviousPage() {
       this.currentPage -= 1;
