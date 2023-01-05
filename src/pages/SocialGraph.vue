@@ -271,8 +271,8 @@ export default {
       this.title = `The ${this.type}s of ${this.inputString}`;
     },
     exportPageAddressList() {
-      const accounts = this.currentPageData.map((c) => c.account);
-      downloadAsFile(accounts.join('\n'), `${this.type}_of_${this.inputString}_page_${this.currentPage}.csv`, 'text/csv');
+      const content = this.currentPageData.map((c) => `${c.account},${c.count},${c.totalValue}`);
+      downloadAsFile(content.join('\n'), `${this.type}_of_${this.inputString}_page_${this.currentPage}.csv`, 'text/csv');
     },
     async goToPreviousPage() {
       this.currentPage -= 1;
