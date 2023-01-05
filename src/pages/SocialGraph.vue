@@ -21,9 +21,26 @@
   <h3 v-if="responseField">
     {{ title }}
   </h3>
-  <button @click="exportPageAddressList">
-    Export addresses in current page
-  </button>
+  <div>
+    <button
+      v-if="isLoadingAllPageData"
+      disabled
+    >
+      Exporting data...
+    </button>
+    <button
+      v-else-if="allPageData && allPageData.length"
+      @click="exportAllPageData"
+    >
+      Download exported data
+    </button>
+    <button
+      v-else
+      @click="fetchAllPageData"
+    >
+      Export all data
+    </button>
+  </div>
   <div v-if="hasData">
     <button
       :disabled="!hasPreviousPage"
@@ -152,6 +169,8 @@ export default {
       previousPageData: [],
       currentPageData: [],
       nextPageData: [],
+      allPageData: [],
+      isLoadingAllPageData: false,
     };
   },
   computed: {
@@ -231,6 +250,7 @@ export default {
 
     async load() {
       await this.updateQueryAddress();
+      this.allPageData = [];
       [
         this.currentPageData,
         this.nextPageData,
@@ -270,9 +290,31 @@ export default {
     updateTitle() {
       this.title = `The ${this.type}s of ${this.inputString}`;
     },
-    exportPageAddressList() {
-      const content = this.currentPageData.map((c) => `${c.account},${c.count},${c.totalValue}`);
-      downloadAsFile(content.join('\n'), `${this.type}_of_${this.inputString}_page_${this.currentPage}.csv`, 'text/csv');
+    async fetchAllPageData() {
+      this.allPageData = [];
+      this.isLoadingAllPageData = true;
+      let i = INITIAL_PAGE;
+      let isPageEnd = false;
+      while (!isPageEnd) {
+        // eslint-disable-next-line no-await-in-loop
+        const data = await this.fetchPageData(i);
+        isPageEnd = !(data && data.length);
+        if (!isPageEnd) this.allPageData = this.allPageData.concat(data);
+        i += 1;
+      }
+      this.allPageData.sort(
+        (a, b) => b.totalValue - a.totalValue,
+      );
+
+      // TODO: Fix indexer API to not return duplicated addresses
+      this.allPageData = this.allPageData
+        .filter((c, index) => this.allPageData.indexOf(c) === index);
+
+      this.isLoadingAllPageData = false;
+    },
+    exportAllPageData() {
+      const content = this.allPageData.map((c) => `${c.account},${c.count},${c.totalValue}`);
+      downloadAsFile(content.join('\n'), `${this.type}_of_${this.inputString}.csv`, 'text/csv');
     },
     async goToPreviousPage() {
       this.currentPage -= 1;
