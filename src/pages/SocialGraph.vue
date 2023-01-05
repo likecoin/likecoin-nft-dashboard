@@ -22,7 +22,7 @@
     {{ title }}
   </h3>
   <button @click="exportPageAddressList">
-    Export addresses in currrent page
+    Export addresses in current page
   </button>
   <div v-if="hasData">
     <button

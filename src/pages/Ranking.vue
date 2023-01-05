@@ -63,7 +63,7 @@
     </section>
     <section>
       <button @click="exportPageData">
-        Export currrent page
+        Export current page
       </button>
     </section>
   </div>
