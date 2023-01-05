@@ -12,4 +12,12 @@ export function isValidAddress(address) {
   }
 }
 
+export function downloadAsFile(content, name, type = 'text/csv') {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([content], { type }));
+  a.download = name;
+  a.click();
+  a.remove();
+}
+
 export default isValidAddress;
