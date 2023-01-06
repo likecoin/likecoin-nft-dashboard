@@ -307,8 +307,10 @@ export default {
       );
 
       // TODO: Fix indexer API to not return duplicated addresses
-      this.allPageData = this.allPageData
-        .filter((c, index) => this.allPageData.indexOf(c) === index);
+      this.allPageData = [...new Map(this.allPageData.map((c) => [
+        c.account,
+        c,
+      ])).values()];
 
       this.isLoadingAllPageData = false;
     },
