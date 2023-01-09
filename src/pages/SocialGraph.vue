@@ -306,12 +306,6 @@ export default {
         (a, b) => b.totalValue - a.totalValue,
       );
 
-      // TODO: Fix indexer API to not return duplicated addresses
-      this.allPageData = [...new Map(this.allPageData.map((c) => [
-        c.account,
-        c,
-      ])).values()];
-
       this.isLoadingAllPageData = false;
     },
     exportAllPageData() {
