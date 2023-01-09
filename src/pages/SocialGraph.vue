@@ -315,6 +315,13 @@ export default {
       this.isLoadingAllPageData = false;
     },
     exportAllPageData() {
+      if (this.$gtag) {
+        this.$gtag.event(`export_social_graph_${this.type}_data`, {
+          event_category: 'export',
+          event_label: 'social_graph',
+          value: 1,
+        });
+      }
       const header = ['address, NFT count, NFT current total value'];
       const content = this.allPageData.map((c) => `${c.account},${c.count},${c.totalValue}`);
       downloadAsFile(header.concat(content).join('\n'), `${this.type}_of_${this.inputString}.csv`, 'text/csv');

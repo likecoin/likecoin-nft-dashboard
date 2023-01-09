@@ -154,6 +154,13 @@ export default {
       this.load();
     },
     exportPageData() {
+      if (this.$gtag) {
+        this.$gtag.event('export_ranking_data', {
+          event_category: 'export',
+          event_label: 'ranking',
+          value: 1,
+        });
+      }
       const header = ['NFT class ID, NFT name, creator, NFT description, sold count, current price'];
       const contents = this.classes.map((c) => `${c.id},"${c.name.replaceAll('"', '""')}",${c.creator},"${c.description.replaceAll('"', '""')}", ${c.soldCount}, ${c.price}`);
       downloadAsFile(header.concat(contents).join('\n'), 'nft_data.csv', 'text/csv');
