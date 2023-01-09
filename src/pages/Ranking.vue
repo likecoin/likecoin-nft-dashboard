@@ -154,8 +154,9 @@ export default {
       this.load();
     },
     exportPageData() {
+      const header = ['NFT class ID, NFT name, creator, NFT description, sold count, current price'];
       const contents = this.classes.map((c) => `${c.id},"${c.name.replaceAll('"', '""')}",${c.creator},"${c.description.replaceAll('"', '""')}", ${c.soldCount}, ${c.price}`);
-      downloadAsFile(contents.join('\n'), 'nft_data.csv', 'text/csv');
+      downloadAsFile(header.concat(contents).join('\n'), 'nft_data.csv', 'text/csv');
     },
     async load() {
       const after = new Date(this.after).getTime() / 1000 || 0;

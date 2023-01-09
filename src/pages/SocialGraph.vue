@@ -315,8 +315,9 @@ export default {
       this.isLoadingAllPageData = false;
     },
     exportAllPageData() {
+      const header = ['address, NFT count, NFT current total value'];
       const content = this.allPageData.map((c) => `${c.account},${c.count},${c.totalValue}`);
-      downloadAsFile(content.join('\n'), `${this.type}_of_${this.inputString}.csv`, 'text/csv');
+      downloadAsFile(header.concat(content).join('\n'), `${this.type}_of_${this.inputString}.csv`, 'text/csv');
     },
     async goToPreviousPage() {
       this.currentPage -= 1;
