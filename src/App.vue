@@ -1,5 +1,5 @@
 <template>
-  <header>
+  <header class="main-header">
     <h1 class="gradient-text">
       LikeCoin NFT Dashboard
     </h1>
@@ -58,11 +58,14 @@ header {
   margin: 0;
 }
 
-.gradient-text {
-  margin: 0;
-  padding-top: 25px;
+.main-header {
   display: flex;
   justify-content: center;
+  align-items: center;
+}
+
+.gradient-text {
+  margin: 0;
   color: transparent;
   font-weight: 600;
   font-size: 36px;
