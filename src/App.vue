@@ -89,10 +89,10 @@ table, th, td {
 }
 
 footer {
-  margin: 10px;
-}
+  padding: 12px 12px 20px;
 
-footer a {
-  margin-left: 10px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
 }
 </style>
