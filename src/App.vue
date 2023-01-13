@@ -19,6 +19,8 @@
   </div>
   <footer>
     <a href="https://liker.land">Writing NFT</a>
+    <a href="https://likecoin.github.io/likecoin-nft-marketplace/">NFT Marketplace</a>
+    <a href="https://github.com/likecoin/likecoin-nft-dashboard">Github</a>
     <a href="https://like.co">About LikeCoin</a>
   </footer>
 </template>
@@ -84,6 +86,10 @@ table {
 }
 table, th, td {
   border: 1px solid;
+}
+
+footer {
+  margin: 10px;
 }
 
 footer a {
