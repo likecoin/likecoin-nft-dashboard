@@ -10,5 +10,6 @@ app.use(pinia);
 app.use(router);
 app.use(VueGtag, {
   config: { id: 'G-WZNJHM0MM1' },
+  bootstrap: !navigator.doNotTrack,
 }, router);
 app.mount('#app');
