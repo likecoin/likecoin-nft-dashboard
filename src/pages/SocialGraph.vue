@@ -7,12 +7,22 @@
         <option value="creator">Creator</option>
         <option value="collector">Collector</option>
       </select>
-      Of
+      of
       <input
         v-model="inputString"
         type="text"
         size="40"
       >
+      , order by
+      <select v-model="orderBy">
+        <option value="price">Price</option>
+        <option value="count">Count</option>
+      </select>
+      , price by
+      <select v-model="priceBy">
+        <option value="class">Class</option>
+        <option value="nft">NFT</option>
+      </select>
     </label>
     <button @click="load">
       Load
@@ -164,6 +174,8 @@ export default {
   data() {
     return {
       type: 'collector',
+      orderBy: 'price',
+      priceBy: 'class',
       inputString: EXAMPLE_CREATOR_ADDRESS,
       address: '',
       title: '',
@@ -240,6 +252,8 @@ export default {
         'pagination.offset': i * INDEXER_QUERY_LIMIT,
         ignore_list: IGNORE_ADDRESS_LIST,
         reverse: true,
+        order_by: this.orderBy,
+        price_by: this.priceBy,
       };
       params[this.paramField] = this.address;
       const { data } = await indexerApi.get(`/likechain/likenft/v1/${this.type}`, { params });
