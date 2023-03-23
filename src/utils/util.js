@@ -1,4 +1,5 @@
 import { bech32 } from 'bech32';
+import BigNumber from 'bignumber.js';
 
 export function isValidAddress(address) {
   try {
@@ -20,4 +21,6 @@ export function downloadAsFile(content, name, type = 'text/csv') {
   a.remove();
 }
 
-export default isValidAddress;
+export function nanolikeToLIKE(nanolike) {
+  return Number(new BigNumber(nanolike).dividedBy(1e9).toFixed(0));
+}

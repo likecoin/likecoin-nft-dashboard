@@ -90,10 +90,15 @@
             <td>
               <NftLink
                 :class-id="col.classId"
-                :name="col.name"
+                :name="col.name || col.classId"
               />
             </td>
-            <td><strong>{{ col.count }}</strong> x {{ col.price }}</td>
+            <td v-if="priceBy==='class'">
+              <strong>{{ col.count }}</strong> x {{ col.price }}
+            </td>
+            <td v-else-if="priceBy==='nft'">
+              <strong>{{ col.count }}</strong> in {{ col.totalValue }}
+            </td>
           </tr>
         </table>
         <td>{{ c.totalValue }} LIKE</td>
@@ -130,16 +135,25 @@ import {
   INDEXER_QUERY_LIMIT,
 } from '../config';
 import { getClass, getMetadata, indexerApi } from '../utils/proxy';
-import { isValidAddress, downloadAsFile } from '../utils/util';
+import { isValidAddress, downloadAsFile, nanolikeToLIKE } from '../utils/util';
 import { useUserInfoStore } from '../store/userInfo.js';
 
 const INITIAL_PAGE = 1;
 
-async function getCollection({ iscn_id_prefix: iscnIdPrefix, class_id: classId, count }) {
-  const collection = {
+async function formatCollection(rawCollection) {
+  const {
+    iscn_id_prefix: iscnIdPrefix,
+    class_id: classId,
+    value,
+    count,
+  } = rawCollection;
+  const result = {
     iscnIdPrefix,
     classId,
     count,
+    name: '',
+    price: 0,
+    totalValue: 0,
   };
   try {
     const [
@@ -150,23 +164,17 @@ async function getCollection({ iscn_id_prefix: iscnIdPrefix, class_id: classId, 
       getMetadata(classId),
     ]);
     const { lastSoldPrice: price } = purchaseRes.data;
-    return {
-      price,
-      totalValue: count * price,
-      ...collection,
-      ...metadataRes.data,
-    };
+    const { name } = metadataRes.data;
+    result.price = price;
+    result.name = name;
+    result.totalValue = nanolikeToLIKE(value);
   } catch (err) {
     if (err.response && err.response.status !== 404) {
-    // eslint-disable-next-line no-console
-    console.error(err, iscnIdPrefix, classId);
+      // eslint-disable-next-line no-console
+      console.error(err, iscnIdPrefix, classId);
     }
-    return {
-      ...collection,
-      price: 0,
-      totalValue: 0,
-    };
   }
+  return result;
 }
 
 export default {
@@ -233,13 +241,9 @@ export default {
             account: a.account,
             collections: [],
             count: a.count,
-            totalValue: 0,
+            totalValue: nanolikeToLIKE(a.total_value),
           };
-          account.collections = await Promise.all(a.collections.map(getCollection));
-          account.totalValue = account.collections.reduce(
-            (total, { totalValue }) => total + totalValue,
-            0,
-          );
+          account.collections = await Promise.all(a.collections.map(formatCollection));
           return account;
         });
       return Promise.all(promises);
