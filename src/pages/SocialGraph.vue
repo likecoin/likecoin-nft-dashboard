@@ -66,43 +66,70 @@
       Next &gt;&gt;
     </button>
     <table>
-      <tr>
-        <th>Account</th>
-        <th>Total Count</th>
-        <th>Collections</th>
-        <th>Total Value</th>
-      </tr>
-      <tr
-        v-for="c in currentPageData"
-        :key="c.account"
-      >
-        <td>
-          <UserLink
-            :wallet="c.account"
-          />
-        </td>
-        <td>{{ c.count }}</td>
-        <table>
+      <thead>
+        <tr>
+          <th rowspan="2">
+            Account
+          </th>
+          <th colspan="3">
+            Class
+          </th>
+          <th colspan="2">
+            Collection
+          </th>
+        </tr>
+        <tr>
+          <th>Name</th>
+          <th>Count</th>
+          <th>Total Value</th>
+          <th>Count</th>
+          <th>Total Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <template
+          v-for="c in currentPageData"
+          :key="c.account"
+        >
           <tr
-            v-for="col in c.collections"
+            v-for="(col, i) in c.collections"
             :key="col.classId"
           >
+            <td
+              v-if="i === 0"
+              :rowspan="c.collections.length"
+            >
+              <UserLink
+                :wallet="c.account"
+              />
+            </td>
             <td>
               <NftLink
                 :class-id="col.classId"
                 :name="col.name || col.classId"
               />
             </td>
-            <td v-if="priceBy==='class'">
-              <strong>{{ col.count }}</strong> x {{ col.price }}
+            <td>
+              <strong>{{ col.count }}</strong>
             </td>
-            <td v-else-if="priceBy==='nft'">
-              <strong>{{ col.count }}</strong> in {{ col.totalValue }}
+            <td>
+              {{ col.totalValue }}
+            </td>
+            <td
+              v-if="i === 0"
+              :rowspan="c.collections.length"
+            >
+              {{ c.count }}
+            </td>
+            <td
+              v-if="i === 0"
+              :rowspan="c.collections.length"
+            >
+              {{ c.totalValue }} LIKE
             </td>
           </tr>
-        </table>
-        <td>{{ c.totalValue }} LIKE</td>
-      </tr>
+        </template>
+      </tbody>
     </table>
     <button
       :disabled="!hasPreviousPage"
@@ -134,7 +161,7 @@ import {
   EXAMPLE_CREATOR_ADDRESS,
   INDEXER_QUERY_LIMIT,
 } from '../config';
-import { getClass, getMetadata, indexerApi } from '../utils/proxy';
+import { getMetadata, indexerApi } from '../utils/proxy';
 import { isValidAddress, downloadAsFile, nanolikeToLIKE } from '../utils/util';
 import { useUserInfoStore } from '../store/userInfo.js';
 
@@ -152,22 +179,11 @@ async function formatCollection(rawCollection) {
     classId,
     count,
     name: '',
-    price: 0,
-    totalValue: 0,
+    totalValue: nanolikeToLIKE(value),
   };
   try {
-    const [
-      purchaseRes,
-      metadataRes,
-    ] = await Promise.all([
-      getClass(classId),
-      getMetadata(classId),
-    ]);
-    const { lastSoldPrice: price } = purchaseRes.data;
-    const { name } = metadataRes.data;
-    result.price = price;
-    result.name = name;
-    result.totalValue = nanolikeToLIKE(value);
+    const { data } = await getMetadata(classId);
+    result.name = data.name;
   } catch (err) {
     if (err.response && err.response.status !== 404) {
       // eslint-disable-next-line no-console
@@ -306,7 +322,7 @@ export default {
       }
     },
     updateTitle() {
-      this.title = `The ${this.type}s of ${this.inputString}`;
+      this.title = `The ${this.type}s of ${this.inputString}, total value by ${this.priceBy}`;
     },
     async fetchAllPageData() {
       this.allPageData = [];
@@ -334,7 +350,7 @@ export default {
           value: 1,
         });
       }
-      const header = ['address, NFT count, NFT current total value'];
+      const header = [`address, NFT count, NFT total value by ${this.priceBy}`];
       const content = this.allPageData.map((c) => `${c.account},${c.count},${c.totalValue}`);
       downloadAsFile(header.concat(content).join('\n'), `${this.type}_of_${this.inputString}.csv`, 'text/csv');
     },
