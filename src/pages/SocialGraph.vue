@@ -147,8 +147,10 @@ async function getCollection({ iscn_id_prefix: iscnIdPrefix, class_id: classId, 
       ...metadataRes.data,
     };
   } catch (err) {
+    if (err.response && err.response.status !== 404) {
     // eslint-disable-next-line no-console
     console.error(err, iscnIdPrefix, classId);
+    }
     return {
       ...collection,
       price: 0,
