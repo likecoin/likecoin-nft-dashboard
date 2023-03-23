@@ -230,9 +230,7 @@ export default {
           );
           return account;
         });
-      return (await Promise.all(promises)).sort(
-        (a, b) => b.totalValue - a.totalValue,
-      );
+      return Promise.all(promises);
     },
 
     async fetchPageData(page = INITIAL_PAGE) {
