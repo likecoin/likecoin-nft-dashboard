@@ -22,5 +22,5 @@ export function downloadAsFile(content, name, type = 'text/csv') {
 }
 
 export function nanolikeToLIKE(nanolike) {
-  return Number(new BigNumber(nanolike).dividedBy(1e9).toFixed(0));
+  return Number(new BigNumber(nanolike).shiftedBy(-9).toFixed(0));
 }

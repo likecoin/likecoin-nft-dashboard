@@ -75,7 +75,7 @@
             Class
           </th>
           <th colspan="2">
-            Collection
+            Total
           </th>
         </tr>
         <tr>
@@ -245,6 +245,15 @@ export default {
     hasNextPage() {
       return this.nextPageData && this.nextPageData.length > 0;
     },
+    priceByInLaymanTerm() {
+      switch (this.priceBy) {
+        case 'class':
+          return 'current value';
+        case 'nft':
+        default:
+          return 'purchase price';
+      }
+    }
   },
   mounted() {
     this.load();
@@ -322,7 +331,7 @@ export default {
       }
     },
     updateTitle() {
-      this.title = `The ${this.type}s of ${this.inputString}, total value by ${this.priceBy}`;
+      this.title = `The ${this.type}s of ${this.inputString}, total value by ${this.priceByInLaymanTerm}`;
     },
     async fetchAllPageData() {
       this.allPageData = [];
@@ -350,7 +359,7 @@ export default {
           value: 1,
         });
       }
-      const header = [`address, NFT count, NFT total value by ${this.priceBy}`];
+      const header = [`address, NFT count, NFT total value by ${this.priceByInLaymanTerm}`];
       const content = this.allPageData.map((c) => `${c.account},${c.count},${c.totalValue}`);
       downloadAsFile(header.concat(content).join('\n'), `${this.type}_of_${this.inputString}.csv`, 'text/csv');
     },
