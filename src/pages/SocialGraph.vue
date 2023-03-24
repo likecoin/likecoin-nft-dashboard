@@ -20,8 +20,8 @@
       </select>
       , price by
       <select v-model="priceBy">
-        <option value="class">Class</option>
-        <option value="nft">NFT</option>
+        <option value="nft">purchase price (NFT)</option>
+        <option value="class">current value (class)</option>
       </select>
     </label>
     <button @click="load">
@@ -199,7 +199,7 @@ export default {
     return {
       type: 'collector',
       orderBy: 'price',
-      priceBy: 'class',
+      priceBy: 'nft',
       inputString: EXAMPLE_CREATOR_ADDRESS,
       address: '',
       title: '',
