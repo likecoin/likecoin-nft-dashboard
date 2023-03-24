@@ -20,8 +20,8 @@
       </select>
       , price by
       <select v-model="priceBy">
-        <option value="nft">purchase price (NFT)</option>
-        <option value="class">current value (class)</option>
+        <option value="nft">Purchase price</option>
+        <option value="class">Current value</option>
       </select>
     </label>
     <button @click="load">
