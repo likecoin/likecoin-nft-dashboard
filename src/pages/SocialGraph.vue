@@ -7,12 +7,22 @@
         <option value="creator">Creator</option>
         <option value="collector">Collector</option>
       </select>
-      Of
+      of
       <input
         v-model="inputString"
         type="text"
         size="40"
       >
+      , order by
+      <select v-model="orderBy">
+        <option value="price">Price</option>
+        <option value="count">Count</option>
+      </select>
+      , price by
+      <select v-model="priceBy">
+        <option value="nft">Purchase price</option>
+        <option value="class">Current value</option>
+      </select>
     </label>
     <button @click="load">
       Load
@@ -56,38 +66,70 @@
       Next &gt;&gt;
     </button>
     <table>
-      <tr>
-        <th>Account</th>
-        <th>Total Count</th>
-        <th>Collections</th>
-        <th>Total Value</th>
-      </tr>
-      <tr
-        v-for="c in currentPageData"
-        :key="c.account"
-      >
-        <td>
-          <UserLink
-            :wallet="c.account"
-          />
-        </td>
-        <td>{{ c.count }}</td>
-        <table>
+      <thead>
+        <tr>
+          <th rowspan="2">
+            Account
+          </th>
+          <th colspan="3">
+            Class
+          </th>
+          <th colspan="2">
+            Total
+          </th>
+        </tr>
+        <tr>
+          <th>Name</th>
+          <th>Count</th>
+          <th>Total Value</th>
+          <th>Count</th>
+          <th>Total Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <template
+          v-for="c in currentPageData"
+          :key="c.account"
+        >
           <tr
-            v-for="col in c.collections"
+            v-for="(col, i) in c.collections"
             :key="col.classId"
           >
+            <td
+              v-if="i === 0"
+              :rowspan="c.collections.length"
+            >
+              <UserLink
+                :wallet="c.account"
+              />
+            </td>
             <td>
               <NftLink
                 :class-id="col.classId"
-                :name="col.name"
+                :name="col.name || col.classId"
               />
             </td>
-            <td><strong>{{ col.count }}</strong> x {{ col.price }}</td>
+            <td>
+              <strong>{{ col.count }}</strong>
+            </td>
+            <td>
+              {{ col.totalValue }}
+            </td>
+            <td
+              v-if="i === 0"
+              :rowspan="c.collections.length"
+            >
+              {{ c.count }}
+            </td>
+            <td
+              v-if="i === 0"
+              :rowspan="c.collections.length"
+            >
+              {{ c.totalValue }} LIKE
+            </td>
           </tr>
-        </table>
-        <td>{{ c.totalValue }} LIKE</td>
-      </tr>
+        </template>
+      </tbody>
     </table>
     <button
       :disabled="!hasPreviousPage"
@@ -119,42 +161,36 @@ import {
   EXAMPLE_CREATOR_ADDRESS,
   INDEXER_QUERY_LIMIT,
 } from '../config';
-import { getClass, getMetadata, indexerApi } from '../utils/proxy';
-import { isValidAddress, downloadAsFile } from '../utils/util';
+import { getMetadata, indexerApi } from '../utils/proxy';
+import { isValidAddress, downloadAsFile, nanolikeToLIKE } from '../utils/util';
 import { useUserInfoStore } from '../store/userInfo.js';
 
 const INITIAL_PAGE = 1;
 
-async function getCollection({ iscn_id_prefix: iscnIdPrefix, class_id: classId, count }) {
-  const collection = {
+async function formatCollection(rawCollection) {
+  const {
+    iscn_id_prefix: iscnIdPrefix,
+    class_id: classId,
+    value,
+    count,
+  } = rawCollection;
+  const result = {
     iscnIdPrefix,
     classId,
     count,
+    name: '',
+    totalValue: nanolikeToLIKE(value),
   };
   try {
-    const [
-      purchaseRes,
-      metadataRes,
-    ] = await Promise.all([
-      getClass(classId),
-      getMetadata(classId),
-    ]);
-    const { lastSoldPrice: price } = purchaseRes.data;
-    return {
-      price,
-      totalValue: count * price,
-      ...collection,
-      ...metadataRes.data,
-    };
+    const { data } = await getMetadata(classId);
+    result.name = data.name;
   } catch (err) {
-    // eslint-disable-next-line no-console
-    console.error(err, iscnIdPrefix, classId);
-    return {
-      ...collection,
-      price: 0,
-      totalValue: 0,
-    };
+    if (err.response && err.response.status !== 404) {
+      // eslint-disable-next-line no-console
+      console.error(err, iscnIdPrefix, classId);
+    }
   }
+  return result;
 }
 
 export default {
@@ -162,6 +198,8 @@ export default {
   data() {
     return {
       type: 'collector',
+      orderBy: 'price',
+      priceBy: 'nft',
       inputString: EXAMPLE_CREATOR_ADDRESS,
       address: '',
       title: '',
@@ -207,6 +245,15 @@ export default {
     hasNextPage() {
       return this.nextPageData && this.nextPageData.length > 0;
     },
+    priceByInLaymanTerm() {
+      switch (this.priceBy) {
+        case 'class':
+          return 'current value';
+        case 'nft':
+        default:
+          return 'purchase price';
+      }
+    }
   },
   mounted() {
     this.load();
@@ -219,18 +266,12 @@ export default {
             account: a.account,
             collections: [],
             count: a.count,
-            totalValue: 0,
+            totalValue: nanolikeToLIKE(a.total_value),
           };
-          account.collections = await Promise.all(a.collections.map(getCollection));
-          account.totalValue = account.collections.reduce(
-            (total, { totalValue }) => total + totalValue,
-            0,
-          );
+          account.collections = await Promise.all(a.collections.map(formatCollection));
           return account;
         });
-      return (await Promise.all(promises)).sort(
-        (a, b) => b.totalValue - a.totalValue,
-      );
+      return Promise.all(promises);
     },
 
     async fetchPageData(page = INITIAL_PAGE) {
@@ -240,6 +281,8 @@ export default {
         'pagination.offset': i * INDEXER_QUERY_LIMIT,
         ignore_list: IGNORE_ADDRESS_LIST,
         reverse: true,
+        order_by: this.orderBy,
+        price_by: this.priceBy,
       };
       params[this.paramField] = this.address;
       const { data } = await indexerApi.get(`/likechain/likenft/v1/${this.type}`, { params });
@@ -288,7 +331,7 @@ export default {
       }
     },
     updateTitle() {
-      this.title = `The ${this.type}s of ${this.inputString}`;
+      this.title = `The ${this.type}s of ${this.inputString}, total value by ${this.priceByInLaymanTerm}`;
     },
     async fetchAllPageData() {
       this.allPageData = [];
@@ -316,7 +359,7 @@ export default {
           value: 1,
         });
       }
-      const header = ['address, NFT count, NFT current total value'];
+      const header = [`address, NFT count, NFT total value by ${this.priceByInLaymanTerm}`];
       const content = this.allPageData.map((c) => `${c.account},${c.count},${c.totalValue}`);
       downloadAsFile(header.concat(content).join('\n'), `${this.type}_of_${this.inputString}.csv`, 'text/csv');
     },
