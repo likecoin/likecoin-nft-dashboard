@@ -1,6 +1,6 @@
 const { VUE_APP_INDEXER_URL } = process.env;
 
-export const IS_TESTNET = false;
+export const IS_TESTNET = true;
 export const INDEXER_URL = VUE_APP_INDEXER_URL || (IS_TESTNET ? 'https://node.testnet.like.co' : 'https://mainnet-node.like.co');
 export const API_PUBLIC_URL = IS_TESTNET ? 'https://api.rinkeby.like.co' : 'https://api.like.co';
 export const EXAMPLE_CREATOR_ADDRESS = 'like13f4glvg80zvfrrs7utft5p68pct4mcq7t5atf6';
